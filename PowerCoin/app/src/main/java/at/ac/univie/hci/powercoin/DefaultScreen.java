@@ -1,10 +1,12 @@
 package at.ac.univie.hci.powercoin;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,7 +15,23 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+
 public class DefaultScreen extends AppCompatActivity {
+
+
+
+    /**GRAPH RELATED
+     * mHandler: https://developer.android.com/reference/android/os/Handler
+     * mTimer: https://developer.android.com/reference/java/lang/Runnable
+     * Allows for threads to be created and update Graph in real time
+     */
+    private final Handler mHandler = new Handler();
+    private Runnable mTimer;
+    private Graph graph;
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,15 +49,16 @@ public class DefaultScreen extends AppCompatActivity {
             }
         });
 
-        GraphView graph = (GraphView) findViewById(R.id.graph);
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
-                new DataPoint(0, 1),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
-        });
-        graph.addSeries(series);
+
+        //GRAPH-RELATED STUFF HERE (NO TOUCH)
+        GraphView graphView = (GraphView) findViewById(R.id.graph);
+        graph = new Graph();
+        graphView.addSeries(graph.newGraph());
+        graphView.getViewport().setXAxisBoundsManual(true);
+        graphView.getViewport().setMinX(0);
+        graphView.getViewport().setMaxX(40);
+
+        //END OF GRAPH-RELATED STUFF
     }
 
     @Override
@@ -62,5 +81,28 @@ public class DefaultScreen extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    //GRAPH RELATED
+    @Override
+    public void onResume() {
+        Log.d("GRAPH", "Starting new thread to update graph");
+        super.onResume();
+        mTimer = new Runnable() {
+            @Override
+            public void run() {
+                graph.updateGraph();
+                mHandler.postDelayed(this, 1000);
+            }
+        };
+        mHandler.postDelayed(mTimer, 1000);
+        Log.d("GRAPH", "Successfully updated!");
+    }
+
+    @Override
+    public void onPause() {
+        mHandler.removeCallbacks(mTimer);
+        super.onPause();
     }
 }
