@@ -1,5 +1,6 @@
 package at.ac.univie.hci.powercoin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -57,8 +58,8 @@ public class DefaultScreen extends AppCompatActivity {
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(40);
-
         //END OF GRAPH-RELATED STUFF
+
     }
 
     @Override
@@ -77,7 +78,8 @@ public class DefaultScreen extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            startPortfolio();
+            //return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -105,4 +107,13 @@ public class DefaultScreen extends AppCompatActivity {
         mHandler.removeCallbacks(mTimer);
         super.onPause();
     }
+
+    //PORTFOLIO RELATED
+    public void startPortfolio(){
+        Intent portfolio = new Intent(this, PortfolioScreen.class);
+        startActivity(portfolio);
+    }
+
+
+
 }

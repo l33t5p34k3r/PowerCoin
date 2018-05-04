@@ -16,19 +16,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-public class Portfolio extends AppCompatActivity {
+public class PortfolioScreen extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.portfolio_default_screen);
 
-        writeToFile("Test Data", this);
+        writeToFile("Test Data 2", this);
 
         Log.d("FILE", readFromFile(this));
+        Log.d("FILE", PortfolioScreen.this.getFilesDir().getAbsolutePath());
 
-        Intent intent = getIntent();
+        this.deleteFile("PortfolioHistory.txt");
 
+
+        
 
     }
 
@@ -54,7 +57,7 @@ public class Portfolio extends AppCompatActivity {
 
     private void writeToFile(String data,Context context) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistory.txt", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistory.txt",  Context.MODE_APPEND));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
         }
@@ -77,7 +80,7 @@ public class Portfolio extends AppCompatActivity {
                 StringBuilder stringBuilder = new StringBuilder();
 
                 while ( (receiveString = bufferedReader.readLine()) != null ) {
-                    stringBuilder.append(receiveString);
+                    stringBuilder.append(receiveString).append("\n");
                 }
 
                 inputStream.close();
