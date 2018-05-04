@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,7 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
-public class PortfolioScreen extends AppCompatActivity {
+public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState){
@@ -31,6 +33,14 @@ public class PortfolioScreen extends AppCompatActivity {
         this.deleteFile("PortfolioHistory.txt");
 
 
+        Button buttonAdd = findViewById(R.id.buttonAdd);
+        buttonAdd.setOnClickListener(this);
+
+        Button buttonRemove = findViewById(R.id.buttonRemove);
+        buttonRemove.setOnClickListener(this);
+
+        Button buttonHistory = findViewById(R.id.buttonHistory);
+        buttonHistory.setOnClickListener(this);
         
 
     }
@@ -99,6 +109,10 @@ public class PortfolioScreen extends AppCompatActivity {
 
 
     //Transactions
+    @Override
+    public void onClick(View view) {
+        Log.d("ADD_BUTTON", "Button was clicked!");
+    }
 
 
 

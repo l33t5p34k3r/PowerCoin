@@ -94,7 +94,7 @@ public class DefaultScreen extends AppCompatActivity {
         mTimer = new Runnable() {
             @Override
             public void run() {
-                graph.updateGraph();
+                //graph.updateGraph();
                 mHandler.postDelayed(this, 1000);
             }
         };
