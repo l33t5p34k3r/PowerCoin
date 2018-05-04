@@ -22,6 +22,7 @@ import java.io.OutputStreamWriter;
 
 public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener {
 
+    private TextInputLayout usernameWrapper;
     double bitcoinAmmount;
 
     @Override
@@ -45,6 +46,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         Button buttonHistory = findViewById(R.id.buttonHistory);
         buttonHistory.setOnClickListener(this);
+
+        usernameWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
 
 
     }
@@ -123,6 +126,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                 break;
             case R.id.buttonRemove:
                 Log.d("REMOVE_BUTTON", "Button was clicked!");
+                removeClicked();
                 break;
             case R.id.buttonHistory:
                 Log.d("HISTORY_BUTTON", "Button was clicked!");
@@ -142,8 +146,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     public void addClicked(){
         //Check file if bitcoin already exists -> if not, then create bitcoin 0
         //if(bitcoinAmmount == null) bitcoinAmmount = 0;
-        final TextInputLayout usernameWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
-        usernameWrapper.getEditText().getText().toString();
+        //usernameWrapper.getEditText().getText().toString();
+
         Log.d("ADD_BUTTON", "If statement parse String to double STARTS!");
         if( isDouble( usernameWrapper.getEditText().getText().toString())){
 
@@ -156,27 +160,33 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                     Toast.LENGTH_LONG).show();
         }
 
-
         Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmmount);
+    }
 
-
+    public void removeClicked(){
+        if( isDouble( usernameWrapper.getEditText().getText().toString())){
+            Log.d("REMOVE_BUTTON", "If statement PASSED!");
+            bitcoinAmmount -= Double.parseDouble(usernameWrapper.getEditText().getText().toString());
+        }
+        else{
+            Toast.makeText(PortfolioScreen.this,
+                    "Please enter a number!",
+                    Toast.LENGTH_LONG).show();
+        }
+        Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmmount);
     }
 
     public static boolean isDouble( String str ) {
         try {
-            Log.d("ADD_BUTTON", "PARSING!");
             Double.parseDouble(str);
             return true;}
         catch(Exception e ){
-            Log.d("ADD_BUTTON", "PARSING DID NOT WORK!");
             return false;
         }
         //return false;
     }
 
-    public void removeClicked(){
 
-    }
 
 
 }
