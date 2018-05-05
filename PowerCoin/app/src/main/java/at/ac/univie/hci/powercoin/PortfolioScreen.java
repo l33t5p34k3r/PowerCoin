@@ -33,9 +33,10 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         writeToFile("Test Data 2", this);
 
         Log.d("FILE", readFromFile(this));
+        System.out.println(readFromFile(this));
         Log.d("FILE", PortfolioScreen.this.getFilesDir().getAbsolutePath());
 
-        this.deleteFile("PortfolioHistory.txt");
+        this.deleteFile("PortfolioHistory.txt"); //THIS IS USED TO DELETE FILE FOR DEBUG PURPOSES
 
 
         Button buttonAdd = findViewById(R.id.buttonAdd);
@@ -79,7 +80,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             outputStreamWriter.close();
         }
         catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
+            Log.e("Exception", "File write fail: " + e.toString());
         }
     }
 
@@ -130,6 +131,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                 break;
             case R.id.buttonHistory:
                 Log.d("HISTORY_BUTTON", "Button was clicked!");
+                historyClicked();
                 break;
             default:
                 throw new RuntimeException("Unknow button ID");
@@ -160,6 +162,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                     Toast.LENGTH_LONG).show();
         }
 
+        writeToFile("BTC: " + bitcoinAmmount + "\n", this);
         Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmmount);
     }
 
@@ -173,6 +176,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                     "Please enter a number!",
                     Toast.LENGTH_LONG).show();
         }
+        writeToFile("BTC: " + bitcoinAmmount + "\n", this);
         Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmmount);
     }
 
@@ -185,8 +189,5 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         }
         //return false;
     }
-
-
-
 
 }
