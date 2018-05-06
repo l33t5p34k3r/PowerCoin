@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import java.io.File;
 
-public class HistoryScreen  extends AppCompatActivity implements View.OnClickListener{
+public class HistoryScreen  extends AppCompatActivity{
 
     private TextView historyView;
 
@@ -19,21 +19,11 @@ public class HistoryScreen  extends AppCompatActivity implements View.OnClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.portfolio_history_screen);
 
-
-
         Intent intent = getIntent();
 
         historyView = findViewById(R.id.textViewHist);
-
         String historyText = intent.getStringExtra(PortfolioScreen.HISTORY_MESSAGE);
-
         historyView.setText(historyText);
     }
-
-    @Override
-    public void onClick(View view) {
-
-    }
-
 
 }

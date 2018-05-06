@@ -11,6 +11,8 @@ import java.util.Random;
 
 public class Graph {
 
+    //TODO: Get data from API at start of graph
+    //TODO: Get data from API at every update
 
     private LineGraphSeries<DataPoint> mSeries;
     private double graphLastXValue = 5d;
@@ -32,11 +34,12 @@ public class Graph {
     }
 
     public void updateGraph(){
-        Log.d("GRAPH", "Updating graph...");
+        //Log.d("GRAPH", "Updating graph...");
         graphLastXValue += 1d;
         mSeries.appendData(new DataPoint(graphLastXValue, getDataAPI()), true, 40);
     }
 
+    //TODO: IMPLEMENT ACTUAL FUNCTION
     public double getDataAPI(){
         return getRandom();
     }

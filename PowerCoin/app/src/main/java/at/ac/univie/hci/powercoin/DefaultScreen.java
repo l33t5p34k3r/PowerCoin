@@ -11,15 +11,14 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 
-public class DefaultScreen extends AppCompatActivity {
-
-
+public class DefaultScreen extends AppCompatActivity implements View.OnClickListener {
 
     /**GRAPH RELATED
      * mHandler: https://developer.android.com/reference/android/os/Handler
@@ -58,6 +57,9 @@ public class DefaultScreen extends AppCompatActivity {
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(40);
+
+        Button buttonUpdateGraph = findViewById(R.id.graphManualUpdate);
+        buttonUpdateGraph.setOnClickListener(this);
         //END OF GRAPH-RELATED STUFF
 
     }
@@ -78,13 +80,12 @@ public class DefaultScreen extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startPortfolio();
+            startPortfolio(); //TODO: THIS CURRENTLY SENDS TO PORTFOLIO - NEEDS TO BE PUT IN THE RIGHT BUTTON LATER
             //return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
-
 
     //GRAPH RELATED
     @Override
@@ -94,11 +95,11 @@ public class DefaultScreen extends AppCompatActivity {
         mTimer = new Runnable() {
             @Override
             public void run() {
-                //graph.updateGraph();
-                mHandler.postDelayed(this, 1000);
+                graph.updateGraph(); //COMMENT THIS TO STOP GRAPH UPDATE (FOR OPTIMIZATION PURPOSES DURING DEBUG)
+                mHandler.postDelayed(this, 15000); //UPDATES EVERY 15 seconds at 15000 ms
             }
         };
-        mHandler.postDelayed(mTimer, 1000);
+        mHandler.postDelayed(mTimer, 15000);
         Log.d("GRAPH", "Successfully updated!");
     }
 
@@ -106,6 +107,19 @@ public class DefaultScreen extends AppCompatActivity {
     public void onPause() {
         mHandler.removeCallbacks(mTimer);
         super.onPause();
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId())
+        {
+            case R.id.graphManualUpdate:
+                Log.d("GRAPH", "Update Button was clicked!");
+                graph.updateGraph();
+                break;
+            default:
+                throw new RuntimeException("Unknown button ID");
+        }
     }
 
     //PORTFOLIO RELATED
