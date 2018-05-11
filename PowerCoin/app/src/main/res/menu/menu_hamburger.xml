@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/nav_ticker"
+        android:icon="@mipmap/baseline_timeline_black_24dp"
+        android:title="Ticker" />
+
+    <item android:id="@+id/nav_calc"
+        android:icon="@mipmap/baseline_swap_horiz_black_24dp"
+        android:title="Calculator" />
+
+    <item android:id="@+id/nav_portfolio"
+        android:icon="@mipmap/baseline_account_balance_wallet_black_24dp"
+        android:title="Portfolio" />
+
+    <item android:id="@+id/nav_notification"
+        android:icon="@mipmap/baseline_notifications_black_24dp"
+        android:title="Notifications" />
+
+    <item android:id="@+id/nav_settings"
+        android:icon="@mipmap/baseline_settings_black_24dp"
+        android:title="Settings" />
+
+</menu>
