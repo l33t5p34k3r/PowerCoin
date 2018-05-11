@@ -1,12 +1,17 @@
-package at.ac.univie.hci.powercoin;
+package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.screen;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -24,7 +29,12 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import at.ac.univie.hci.powercoin.R;
+
 public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener {
+
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mToggle;
 
     private TextInputLayout usernameWrapper;
     double bitcoinAmount;
@@ -37,7 +47,48 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.portfolio_default_screen);
+        setContentView(R.layout.activity_portfolio_screen);
+
+
+        mDrawerLayout = findViewById(R.id.drawerLayout);
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+
+
+
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        NavigationView nv = findViewById(R.id.hamburger);
+        nv.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+
+                    case(R.id.nav_ticker):
+                        startTicker();
+                        break;
+                    case(R.id.nav_calc):
+                        startCalculator();
+                        break;
+                    case(R.id.nav_portfolio):
+                        startPortfolio();
+                        break;
+                    case(R.id.nav_notification):
+                        startNotification();
+                        break;
+                    case(R.id.nav_settings):
+                        startSettings();
+                        break;
+                }
+                return false;
+            }
+        });
+
+
+
+        //Portfolio Functions
 
         File file = new File(PortfolioScreen.this.getFilesDir().getAbsolutePath(), "PortfolioHistory.txt");
         if(file.exists()){
@@ -223,6 +274,37 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         catch(Exception e ){
             return false;
         }
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        //enables Hamburger-Menu to be opened by pressing the button
+        if(mToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void startTicker() {
+        Intent intent = new Intent(this, TickerScreen.class);
+        startActivity(intent);
+    }
+    public void startCalculator() {
+        Intent intent = new Intent(this, CalculatorScreen.class);
+        startActivity(intent);
+    }
+    public void startPortfolio(){
+        Intent intent = new Intent(this, PortfolioScreen.class);
+        startActivity(intent);
+    }
+    public void startNotification() {
+        Intent intent = new Intent(this, NotificationScreen.class);
+        startActivity(intent);
+    }
+    public void startSettings() {
+        Intent intent = new Intent(this, SettingsScreen.class);
+        startActivity(intent);
     }
 
 }

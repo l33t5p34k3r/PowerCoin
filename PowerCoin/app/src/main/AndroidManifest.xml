@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".DefaultScreen"
+            android:name=".at.ac.univie.hci.powercoin.screen.TickerScreen"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -21,8 +21,11 @@
         </activity>
 
         <!-- ADD ALL SCREENS HERE -->
-        <activity android:name=".PortfolioScreen"/>
-        <activity android:name=".HistoryScreen"/>
+        <activity android:name=".at.ac.univie.hci.powercoin.screen.PortfolioScreen" />
+        <activity android:name=".at.ac.univie.hci.powercoin.screen.HistoryScreen" />
+        <activity android:name=".at.ac.univie.hci.powercoin.screen.NotificationScreen" />
+        <activity android:name=".at.ac.univie.hci.powercoin.screen.CalculatorScreen" />
+        <activity android:name=".at.ac.univie.hci.powercoin.screen.SettingsScreen" />
     </application>
 
 </manifest>

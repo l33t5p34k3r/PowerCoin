@@ -1,10 +1,12 @@
-package at.ac.univie.hci.powercoin;
+package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.screen;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -14,11 +16,19 @@ import android.view.MenuItem;
 import android.widget.Button;
 
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+
+import at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.functionality.Graph;
+import at.ac.univie.hci.powercoin.R;
 
 
-public class DefaultScreen extends AppCompatActivity implements View.OnClickListener {
+public class TickerScreen extends AppCompatActivity implements View.OnClickListener {
+
+    /**HAMBURGER-MENU RELATED
+     *
+     */
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mToggle;
+
 
     /**GRAPH RELATED
      * mHandler: https://developer.android.com/reference/android/os/Handler
@@ -30,28 +40,49 @@ public class DefaultScreen extends AppCompatActivity implements View.OnClickList
     private Graph graph;
 
 
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_default_screen);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setContentView(R.layout.activity_ticker_screen);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        //HAMBURGER-RELATED STUFF THERE
+        mDrawerLayout = findViewById(R.id.drawerLayout);
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        NavigationView nv = findViewById(R.id.hamburger);
+        nv.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case(R.id.nav_ticker):
+                        startTicker();
+                        break;
+                    case(R.id.nav_calc):
+                        startCalculator();
+                        break;
+                    case(R.id.nav_portfolio):
+                        startPortfolio();
+                        break;
+                    case(R.id.nav_notification):
+                        startNotification();
+                        break;
+                    case(R.id.nav_settings):
+                        startSettings();
+                        break;
+                }
+                return false;
             }
         });
 
-
         //GRAPH-RELATED STUFF HERE (NO TOUCH)
-        GraphView graphView = (GraphView) findViewById(R.id.graph);
+        GraphView graphView = findViewById(R.id.graph);
         graph = new Graph();
         graphView.addSeries(graph.newGraph());
         graphView.getViewport().setXAxisBoundsManual(true);
@@ -67,9 +98,11 @@ public class DefaultScreen extends AppCompatActivity implements View.OnClickList
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_default_screen, menu);
+        getMenuInflater().inflate(R.menu.menu_ticker_screen, menu);
         return true;
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -78,10 +111,17 @@ public class DefaultScreen extends AppCompatActivity implements View.OnClickList
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        /* kept for future reference
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startPortfolio(); //TODO: THIS CURRENTLY SENDS TO PORTFOLIO - NEEDS TO BE PUT IN THE RIGHT BUTTON LATER
+            startPortfolio();
             //return true;
+        }
+        */
+
+        //enables Hamburger-Menu to be opened by pressing the button
+        if(mToggle.onOptionsItemSelected(item)) {
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -121,11 +161,27 @@ public class DefaultScreen extends AppCompatActivity implements View.OnClickList
                 throw new RuntimeException("Unknown button ID");
         }
     }
+    public void startTicker() {
+        Intent intent = new Intent(this, TickerScreen.class);
+        startActivity(intent);
+    }
+    public void startCalculator() {
+        Intent intent = new Intent(this, CalculatorScreen.class);
+        startActivity(intent);
+    }
+    public void startNotification() {
+        Intent intent = new Intent(this, NotificationScreen.class);
+        startActivity(intent);
+    }
 
-    //PORTFOLIO RELATED
+    public void startSettings() {
+        Intent intent = new Intent(this, SettingsScreen.class);
+        startActivity(intent);
+    }
+
     public void startPortfolio(){
-        Intent portfolio = new Intent(this, PortfolioScreen.class);
-        startActivity(portfolio);
+        Intent intent = new Intent(this, PortfolioScreen.class);
+        startActivity(intent);
     }
 
 
