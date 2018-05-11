@@ -1,4 +1,4 @@
-package at.ac.univie.hci.powercoin;
+package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.functionality;
 
 import android.os.Handler;
 import android.util.Log;
