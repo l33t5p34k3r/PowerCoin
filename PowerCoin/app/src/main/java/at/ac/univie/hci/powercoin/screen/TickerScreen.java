@@ -25,6 +25,7 @@ import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 import com.jjoe64.graphview.GraphView;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -51,6 +52,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     private RequestQueue sinceQueue;
     private String sinceUrl;
     private double [] sinceVal;
+    private int [] sinceTime;
 
 
     /**GRAPH RELATED
@@ -111,11 +113,31 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         sinceQueue = Volley.newRequestQueue(this);
         sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades";
 
+        JsonRequest sinceReq = new JsonObjectRequest(
+                Request.Method.GET, sinceUrl, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("API_RESPONSE", response.toString());
+                        sinceProcessResult(response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(TickerScreen.this,
+                                "API is not responding!",
+                                Toast.LENGTH_LONG).show();
+                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                    }
+                });
+        sinceQueue.add(sinceReq);
+
 
         //GRAPH-RELATED STUFF HERE (NO TOUCH)
         GraphView graphView = findViewById(R.id.graph);
         graph = new Graph();
-        graphView.addSeries(graph.newGraph());
+        graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(40);
@@ -126,13 +148,40 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    //fills graph with intel
+    private void sinceProcessResult (JSONObject apiResponse) {
+        try {
+
+            JSONArray data = apiResponse.getJSONArray("result");
+            sinceVal = new double[data.length()];
+            sinceTime = new int[data.length()];
+
+            for(int i = 0; i < sinceVal.length; i++) {
+                sinceVal[i] = data.getJSONArray(i).getDouble(2);
+                sinceTime[i] = data.getJSONArray(i).getInt(1);
+            }
+
+
+            /*
+            for (int i = 0; i < data.length();i++ ) {
+                sinceVal[i] = data.getJSONObject()getDouble()
+            }
+            System.out.println(sinceVal);
+            */
+        } catch(JSONException e){
+            Toast.makeText(TickerScreen.this,
+                    "Could not parse API response for Creation!",
+                    Toast.LENGTH_LONG).show();
+            Log.e("PARSER_ERROR", e.getMessage());
+        }
+    }
+
     //updates the graph
     private void UpProcessResult (JSONObject apiResponse) {
         try {
 
             JSONObject data = apiResponse.getJSONObject("result");
             upVal = data.getDouble("price");
-            System.out.println(upVal);
 
         } catch(JSONException e){
             Toast.makeText(TickerScreen.this,
@@ -141,24 +190,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             Log.e("PARSER_ERROR", e.getMessage());
         }
     }
-
-    //fills graph with intel
-    /*
-    private void sinceProcessResult (JSONObject apiResponse) {
-        try {
-
-            JSONObject data = apiResponse.getJSONObject("result");
-            upVal = data.getDouble("price");
-            System.out.println(upVal);
-
-        } catch(JSONException e){
-            Toast.makeText(TickerScreen.this,
-                    "Could not parse API response!",
-                    Toast.LENGTH_LONG).show();
-            Log.e("PARSER_ERROR", e.getMessage());
-        }
-    }
-    */
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

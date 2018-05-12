@@ -14,7 +14,7 @@ public class Graph {
     private double graphLastXValue = 5d;
 
 
-    public LineGraphSeries<DataPoint> newGraph(){
+    public LineGraphSeries<DataPoint> newGraph(double [] newVal, int [] newTime){
         Log.d("GRAPH", "New Graph being created");
         /*LineGraphSeries<DataPoint> mSeries = new LineGraphSeries<DataPoint>(new DataPoint[] {
                 new DataPoint(0, 1),
