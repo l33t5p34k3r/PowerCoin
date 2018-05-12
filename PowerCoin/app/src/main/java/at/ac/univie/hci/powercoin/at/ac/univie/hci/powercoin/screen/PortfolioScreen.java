@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -35,6 +36,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
+    private TextView bitcoinView;
 
     private TextInputLayout usernameWrapper;
     double bitcoinAmount;
@@ -48,7 +50,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     protected void onCreate(@Nullable Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_portfolio_screen);
-
+        bitcoinView = findViewById(R.id.valNum);
 
         mDrawerLayout = findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
@@ -94,6 +96,11 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         if(file.exists()){
             portfolioStart();
         }
+        String bitcoinText = "0";
+        if(bitcoinAmount != 0){
+            bitcoinText = Double.toString(bitcoinAmount);
+            bitcoinView.setText(bitcoinText);
+        } else bitcoinView.setText(bitcoinText);
 
         //this.deleteFile("PortfolioHistory.txt"); //THIS IS USED TO DELETE FILE FOR DEBUG PURPOSES
 
@@ -153,6 +160,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         writeToFile(date + " (+" + usernameWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
         Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
+        String bitcoinText = Double.toString(bitcoinAmount);
+        bitcoinView.setText(bitcoinText);
     }
 
     /**
@@ -174,6 +183,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         writeToFile(date + " (-" + usernameWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
         Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
+        String bitcoinText = Double.toString(bitcoinAmount);
+        bitcoinView.setText(bitcoinText);
     }
 
     //-------
