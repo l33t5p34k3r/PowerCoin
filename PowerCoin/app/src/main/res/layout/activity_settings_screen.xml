@@ -5,7 +5,7 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".at.ac.univie.hci.powercoin.screen.NotificationScreen">
+    tools:context=".screen.NotificationScreen">
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"

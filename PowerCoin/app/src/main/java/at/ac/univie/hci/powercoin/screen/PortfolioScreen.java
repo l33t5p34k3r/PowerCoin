@@ -1,4 +1,4 @@
-package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.screen;
+package at.ac.univie.hci.powercoin.screen;
 
 import android.content.Context;
 import android.content.Intent;

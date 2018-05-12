@@ -1,4 +1,4 @@
-package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.screen;
+package at.ac.univie.hci.powercoin.screen;
 
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -11,20 +11,20 @@ import android.view.MenuItem;
 
 import at.ac.univie.hci.powercoin.R;
 
-public class CalculatorScreen extends AppCompatActivity {
+public class SettingsScreen extends AppCompatActivity {
 
-    /**HAMBURGER-MENU RELATED
-     *
-     */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_calculator_screen);
+        setContentView(R.layout.activity_settings_screen);
+
         mDrawerLayout = findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+
+
 
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();

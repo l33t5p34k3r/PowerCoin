@@ -1,17 +1,9 @@
-package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.functionality;
+package at.ac.univie.hci.powercoin.functionality;
 
-import android.os.Handler;
 import android.util.Log;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
-import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-
-import org.json.JSONArray;
-
-import java.util.Random;
 
 public class Graph {
 
