@@ -1,5 +1,6 @@
 package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.screen;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,8 +15,20 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.Volley;
 import com.jjoe64.graphview.GraphView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.functionality.Graph;
 import at.ac.univie.hci.powercoin.R;
@@ -28,6 +41,18 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
+
+    /**API RELATED
+     *
+     */
+    //TODO: add Queues for former values
+    private RequestQueue upQueue;
+    private String upUrl;
+    private double upVal;
+
+    private RequestQueue sinceQueue;
+    private String sinceUrl;
+    private double [] sinceVal;
 
 
     /**GRAPH RELATED
@@ -81,6 +106,14 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        //API-RELATED STUFF HERE
+        upQueue = Volley.newRequestQueue(this);
+        upUrl = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
+
+        sinceQueue = Volley.newRequestQueue(this);
+        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades";
+
+
         //GRAPH-RELATED STUFF HERE (NO TOUCH)
         GraphView graphView = findViewById(R.id.graph);
         graph = new Graph();
@@ -94,6 +127,40 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         //END OF GRAPH-RELATED STUFF
 
     }
+
+    //updates the graph
+    private void UpProcessResult (JSONObject apiResponse) {
+        try {
+
+            JSONObject data = apiResponse.getJSONObject("result");
+            upVal = data.getDouble("price");
+            System.out.println(upVal);
+
+        } catch(JSONException e){
+            Toast.makeText(TickerScreen.this,
+                    "Could not parse API response!",
+                    Toast.LENGTH_LONG).show();
+            Log.e("PARSER_ERROR", e.getMessage());
+        }
+    }
+
+    //fills graph with intel
+    /*
+    private void sinceProcessResult (JSONObject apiResponse) {
+        try {
+
+            JSONObject data = apiResponse.getJSONObject("result");
+            upVal = data.getDouble("price");
+            System.out.println(upVal);
+
+        } catch(JSONException e){
+            Toast.makeText(TickerScreen.this,
+                    "Could not parse API response!",
+                    Toast.LENGTH_LONG).show();
+            Log.e("PARSER_ERROR", e.getMessage());
+        }
+    }
+    */
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -135,7 +202,26 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         mTimer = new Runnable() {
             @Override
             public void run() {
-                graph.updateGraph(); //COMMENT THIS TO STOP GRAPH UPDATE (FOR OPTIMIZATION PURPOSES DURING DEBUG)
+                JsonRequest upReq = new JsonObjectRequest(
+                        Request.Method.GET, upUrl, null,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                Log.i("API_RESPONSE", response.toString());
+                                UpProcessResult(response);
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Toast.makeText(TickerScreen.this,
+                                        "Please try again!",
+                                        Toast.LENGTH_LONG).show();
+                                if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                            }
+                        });
+                upQueue.add(upReq);
+                graph.updateGraph(upVal); //COMMENT THIS TO STOP GRAPH UPDATE (FOR OPTIMIZATION PURPOSES DURING DEBUG)
                 mHandler.postDelayed(this, 15000); //UPDATES EVERY 15 seconds at 15000 ms
             }
         };
@@ -154,8 +240,28 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         switch(view.getId())
         {
             case R.id.graphManualUpdate:
+
                 Log.d("GRAPH", "Update Button was clicked!");
-                graph.updateGraph();
+                JsonRequest upReq = new JsonObjectRequest(
+                        Request.Method.GET, upUrl, null,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                Log.i("API_RESPONSE", response.toString());
+                                UpProcessResult(response);
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Toast.makeText(TickerScreen.this,
+                                        "Please try again!",
+                                        Toast.LENGTH_LONG).show();
+                                if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                            }
+                        });
+                upQueue.add(upReq);
+                graph.updateGraph(upVal);
                 break;
             default:
                 throw new RuntimeException("Unknown button ID");

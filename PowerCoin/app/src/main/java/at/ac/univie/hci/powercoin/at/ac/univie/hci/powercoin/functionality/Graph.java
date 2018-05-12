@@ -3,9 +3,13 @@ package at.ac.univie.hci.powercoin.at.ac.univie.hci.powercoin.functionality;
 import android.os.Handler;
 import android.util.Log;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import org.json.JSONArray;
 
 import java.util.Random;
 
@@ -33,36 +37,14 @@ public class Graph {
         return mSeries;
     }
 
-    public void updateGraph(){
+    public void updateGraph(double newVal){
         //Log.d("GRAPH", "Updating graph...");
         graphLastXValue += 1d;
-        mSeries.appendData(new DataPoint(graphLastXValue, getDataAPI()), true, 40);
+        mSeries.appendData(new DataPoint(graphLastXValue, newVal), true, 20);
     }
 
-    //TODO: IMPLEMENT ACTUAL FUNCTION
-    public double getDataAPI(){
-        return getRandom();
-    }
+
 
     //FOR TESTING PURPOSES
-    //TODO: DELETE LATER
-    double mLastRandom = 2;
-    Random mRand = new Random();
-    private double getRandom() {
-        return mLastRandom += mRand.nextDouble()*0.5 - 0.25;
-    }
-
-    private DataPoint[] generateData() {
-        int count = 30;
-        DataPoint[] values = new DataPoint[count];
-        for (int i=0; i<count; i++) {
-            double x = i;
-            double f = mRand.nextDouble()*0.15+0.3;
-            double y = Math.sin(i*f+2) + mRand.nextDouble()*0.3;
-            DataPoint v = new DataPoint(x, y);
-            values[i] = v;
-        }
-        return values;
-    }
 
 }
