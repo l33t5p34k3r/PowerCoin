@@ -30,6 +30,8 @@ local.properties
 
 # User-specific configurations
 
+.idea/codeStyles
+
 .idea/libraries/
 
 .idea/workspace.xml
