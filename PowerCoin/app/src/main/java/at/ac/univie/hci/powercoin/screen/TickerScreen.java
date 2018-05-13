@@ -44,7 +44,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     /**API RELATED
      *
      */
-    //TODO: add Queues for former values
+    //TODO: make no static variables
     private RequestQueue upQueue;
     private String upUrl;
     private double upVal;
@@ -52,7 +52,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     private RequestQueue sinceQueue;
     private String sinceUrl;
     private double [] sinceVal;
-    private int [] sinceTime;
+    private long [] sinceTime;
 
 
     /**GRAPH RELATED
@@ -71,6 +71,8 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_ticker_screen);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+
 
         //HAMBURGER-RELATED STUFF THERE
         mDrawerLayout = findViewById(R.id.drawerLayout);
@@ -113,12 +115,15 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         sinceQueue = Volley.newRequestQueue(this);
         sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades";
 
+
         JsonRequest sinceReq = new JsonObjectRequest(
+
                 Request.Method.GET, sinceUrl, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.i("API_RESPONSE", response.toString());
+
                         sinceProcessResult(response);
                     }
                 },
@@ -133,19 +138,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 });
         sinceQueue.add(sinceReq);
 
-
-        //GRAPH-RELATED STUFF HERE (NO TOUCH)
-        GraphView graphView = findViewById(R.id.graph);
-        graph = new Graph();
-        graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
-        graphView.getViewport().setXAxisBoundsManual(true);
-        graphView.getViewport().setMinX(0);
-        graphView.getViewport().setMaxX(40);
-
-        Button buttonUpdateGraph = findViewById(R.id.graphManualUpdate);
-        buttonUpdateGraph.setOnClickListener(this);
-        //END OF GRAPH-RELATED STUFF
-
     }
 
     //fills graph with intel
@@ -154,26 +146,38 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
             JSONArray data = apiResponse.getJSONArray("result");
             sinceVal = new double[data.length()];
-            sinceTime = new int[data.length()];
+            sinceTime = new long[data.length()];
 
             for(int i = 0; i < sinceVal.length; i++) {
                 sinceVal[i] = data.getJSONArray(i).getDouble(2);
                 sinceTime[i] = data.getJSONArray(i).getInt(1);
             }
 
-
-            /*
-            for (int i = 0; i < data.length();i++ ) {
-                sinceVal[i] = data.getJSONObject()getDouble()
-            }
-            System.out.println(sinceVal);
-            */
+            createGraph();
+            
         } catch(JSONException e){
             Toast.makeText(TickerScreen.this,
                     "Could not parse API response for Creation!",
                     Toast.LENGTH_LONG).show();
             Log.e("PARSER_ERROR", e.getMessage());
         }
+    }
+
+    private void createGraph() {
+        //GRAPH-RELATED STUFF HERE (NO TOUCH)
+        GraphView graphView = findViewById(R.id.graph);
+        graph = new Graph();
+        graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
+        graphView.getViewport().setXAxisBoundsManual(true);
+        // graphView.getViewport().setMinX(0);
+        // graphView.getViewport().setMaxX(40);
+        graphView.getViewport().setScalable(true);
+        graphView.getViewport().setScalableY(true);
+
+        Button buttonUpdateGraph = findViewById(R.id.graphManualUpdate);
+        buttonUpdateGraph.setOnClickListener(this);
+        //END OF GRAPH-RELATED STUFF
+
     }
 
     //updates the graph
@@ -250,7 +254,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                             }
                         });
                 upQueue.add(upReq);
-                graph.updateGraph(upVal); //COMMENT THIS TO STOP GRAPH UPDATE (FOR OPTIMIZATION PURPOSES DURING DEBUG)
+                graph.updateGraph(upVal, System.currentTimeMillis()); //COMMENT THIS TO STOP GRAPH UPDATE (FOR OPTIMIZATION PURPOSES DURING DEBUG)
                 mHandler.postDelayed(this, 15000); //UPDATES EVERY 15 seconds at 15000 ms
             }
         };
@@ -290,7 +294,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                             }
                         });
                 upQueue.add(upReq);
-                graph.updateGraph(upVal);
+                graph.updateGraph(upVal, System.currentTimeMillis());
                 break;
             default:
                 throw new RuntimeException("Unknown button ID");
