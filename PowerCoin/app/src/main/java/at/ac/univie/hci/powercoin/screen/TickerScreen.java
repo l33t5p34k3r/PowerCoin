@@ -23,11 +23,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
+import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.NumberFormat;
 
 import at.ac.univie.hci.powercoin.functionality.Graph;
 import at.ac.univie.hci.powercoin.R;
@@ -36,18 +39,27 @@ import at.ac.univie.hci.powercoin.R;
 public class TickerScreen extends AppCompatActivity implements View.OnClickListener {
 
     /**HAMBURGER-MENU RELATED
-     *
+     *mDrawerLayout: Links to Layout for Hamburger Menu
+     * mToggle: makes the Hamburger Button clickable
      */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
     /**API RELATED
+     * upQueue: creates queue for API
+     * upUrl: saves API-Url
+     * upVal: saves latest price
+     * upTime: saves latest time
      *
+     * sinceQueue: creates queue for API
+     * sinceUrl: saves API-Url
+     * sinceVal: saves array of prices since now
+     * sinceTime: saves array of times for the values
      */
-    //TODO: make no static variables
     private RequestQueue upQueue;
     private String upUrl;
     private double upVal;
+    private long upTime = 0;
 
     private RequestQueue sinceQueue;
     private String sinceUrl;
@@ -58,11 +70,13 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     /**GRAPH RELATED
      * mHandler: https://developer.android.com/reference/android/os/Handler
      * mTimer: https://developer.android.com/reference/java/lang/Runnable
-     * Allows for threads to be created and update Graph in real time
+     * graph: creates Graph to fill
+     * currency: displays different currencies
      */
     private final Handler mHandler = new Handler();
     private Runnable mTimer;
     private Graph graph;
+    private String currency = " $ ";
 
 
     @Override
@@ -109,11 +123,14 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         });
 
         //API-RELATED STUFF HERE
+
+        //TODO: make expandable
         upQueue = Volley.newRequestQueue(this);
         upUrl = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
 
         sinceQueue = Volley.newRequestQueue(this);
-        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades";
+        //every hour for 24 hours
+        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=24&since=" + (System.currentTimeMillis() / 1000L - 86400);
 
 
         JsonRequest sinceReq = new JsonObjectRequest(
@@ -140,6 +157,8 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     }
 
+
+
     //fills graph with intel
     private void sinceProcessResult (JSONObject apiResponse) {
         try {
@@ -149,8 +168,12 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             sinceTime = new long[data.length()];
 
             for(int i = 0; i < sinceVal.length; i++) {
-                sinceVal[i] = data.getJSONArray(i).getDouble(2);
-                sinceTime[i] = data.getJSONArray(i).getInt(1);
+                sinceVal[i] = data.getJSONArray(i).getDouble(2) * 1000;
+                sinceTime[i] = data.getJSONArray(i).getLong(1) * 1000;
+            }
+
+            for(int i = 0; i < sinceVal.length; i++) {
+                System.out.println(sinceTime[i]);
             }
 
             createGraph();
@@ -168,11 +191,14 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         GraphView graphView = findViewById(R.id.graph);
         graph = new Graph();
         graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
-        graphView.getViewport().setXAxisBoundsManual(true);
-        // graphView.getViewport().setMinX(0);
-        // graphView.getViewport().setMaxX(40);
+
         graphView.getViewport().setScalable(true);
         graphView.getViewport().setScalableY(true);
+
+        NumberFormat currency = NumberFormat.getCurrencyInstance();
+        NumberFormat time = NumberFormat.getInstance();
+        graphView.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter(time, currency));
+
 
         Button buttonUpdateGraph = findViewById(R.id.graphManualUpdate);
         buttonUpdateGraph.setOnClickListener(this);
@@ -186,6 +212,8 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
             JSONObject data = apiResponse.getJSONObject("result");
             upVal = data.getDouble("price");
+            upTime = System.currentTimeMillis();
+            graph.updateGraph(upVal, upTime);
 
         } catch(JSONException e){
             Toast.makeText(TickerScreen.this,
@@ -195,47 +223,17 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_ticker_screen, menu);
-        return true;
-    }
-
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        /* kept for future reference
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startPortfolio();
-            //return true;
-        }
-        */
-
-        //enables Hamburger-Menu to be opened by pressing the button
-        if(mToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    //GRAPH RELATED
+    //AUTO UPDATE STUFF HERE
     @Override
     public void onResume() {
-        Log.d("GRAPH", "Starting new thread to update graph");
         super.onResume();
+
+
         mTimer = new Runnable() {
             @Override
             public void run() {
-                JsonRequest upReq = new JsonObjectRequest(
+
+                JsonRequest upRequest = new JsonObjectRequest(
                         Request.Method.GET, upUrl, null,
                         new Response.Listener<JSONObject>() {
                             @Override
@@ -252,14 +250,14 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                                         Toast.LENGTH_LONG).show();
                                 if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                             }
-                        });
-                upQueue.add(upReq);
-                graph.updateGraph(upVal, System.currentTimeMillis()); //COMMENT THIS TO STOP GRAPH UPDATE (FOR OPTIMIZATION PURPOSES DURING DEBUG)
-                mHandler.postDelayed(this, 15000); //UPDATES EVERY 15 seconds at 15000 ms
+                        }
+                );
+                upQueue.add(upRequest);
+                mHandler.postDelayed(this, 5000);
             }
         };
-        mHandler.postDelayed(mTimer, 15000);
-        Log.d("GRAPH", "Successfully updated!");
+        mHandler.postDelayed(mTimer, 1000);
+        Log.d("GRAPH", "Successfully updated automatically!");
     }
 
     @Override
@@ -295,11 +293,43 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                         });
                 upQueue.add(upReq);
                 graph.updateGraph(upVal, System.currentTimeMillis());
+                Log.d("GRAPH", "Successfully updated!");
                 break;
             default:
                 throw new RuntimeException("Unknown button ID");
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_ticker_screen, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        /* kept for future reference
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            startPortfolio();
+            //return true;
+        }
+        */
+
+        //enables Hamburger-Menu to be opened by pressing the button
+        if(mToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     public void startTicker() {
         Intent intent = new Intent(this, TickerScreen.class);
         startActivity(intent);
@@ -312,12 +342,10 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(this, NotificationScreen.class);
         startActivity(intent);
     }
-
     public void startSettings() {
         Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
     }
-
     public void startPortfolio(){
         Intent intent = new Intent(this, PortfolioScreen.class);
         startActivity(intent);
