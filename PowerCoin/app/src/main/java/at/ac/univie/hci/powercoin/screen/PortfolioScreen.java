@@ -38,7 +38,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     private ActionBarDrawerToggle mToggle;
     private TextView bitcoinView;
 
-    private TextInputLayout usernameWrapper;
+    private TextInputLayout bitcoinWrapper;
     double bitcoinAmount;
     public static final String HISTORY_MESSAGE = "historyFile";
 
@@ -113,7 +113,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         Button buttonHistory = findViewById(R.id.buttonHistory);
         buttonHistory.setOnClickListener(this);
 
-        usernameWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
+        bitcoinWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
     }
 
     @Override
@@ -147,8 +147,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     public void addClicked(){
         String date = "";
 
-        if( isDouble( usernameWrapper.getEditText().getText().toString())){
-            bitcoinAmount += Double.parseDouble(usernameWrapper.getEditText().getText().toString());
+        if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
+            bitcoinAmount += Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
             date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         }
         else{
@@ -158,7 +158,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                     return;
         }
 
-        writeToFile(date + " (+" + usernameWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
+        writeToFile(date + " (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
         Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
         bitcoinView.setText(bitcoinText);
@@ -170,8 +170,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     public void removeClicked(){
         String date = "";
 
-        if( isDouble( usernameWrapper.getEditText().getText().toString())){
-            bitcoinAmount -= Double.parseDouble(usernameWrapper.getEditText().getText().toString());
+        if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
+            bitcoinAmount -= Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
             date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         }
         else{
@@ -181,7 +181,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             return;
         }
 
-        writeToFile(date + " (-" + usernameWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
+        writeToFile(date + " (-" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
         Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
         bitcoinView.setText(bitcoinText);
