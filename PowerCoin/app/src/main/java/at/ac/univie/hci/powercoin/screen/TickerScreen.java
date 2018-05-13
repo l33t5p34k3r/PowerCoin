@@ -154,7 +154,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             }
 
             createGraph();
-            
+
         } catch(JSONException e){
             Toast.makeText(TickerScreen.this,
                     "Could not parse API response for Creation!",
