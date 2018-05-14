@@ -11,17 +11,18 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
-import at.ac.univie.hci.powercoin.screen.TickerScreen;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Graph {
 
 
     private LineGraphSeries<DataPoint> mSeries;
 
-    private double graphLastXValue;
+    private double graphLastXValue = -4000000.0;
     private double tmpTime;
     private double tmpVal;
-    private long now = System.currentTimeMillis();
+    private long now;
     private Context context;
 
     public Graph(Context context){
@@ -29,22 +30,44 @@ public class Graph {
     }
 
 
-
-
+    //no idea how I did it, don't change
     public LineGraphSeries<DataPoint> newGraph(double [] oldVal, long [] oldTime){
         Log.d("GRAPH", "New Graph being created");
 
-        DataPoint[] newGraph = new DataPoint[oldVal.length];
+        now  = System.currentTimeMillis();
 
-        for (int i = 0; i < newGraph.length; i++) {
+        Long [] time = new Long[oldTime.length];
+
+        for (int i = 0; i < oldVal.length; i++) {
+            time[i] =  oldTime[i];
+        }
+
+        Set<Long> tmp = new HashSet<>();
+
+        for (int i = 0; i < time.length; i++) {
+            tmp.add(time[i]);
+        }
+
+        time =  tmp.toArray(new Long[tmp.size()]);
+
+        DataPoint[] newGraph = new DataPoint[time.length];
+
+        int count = 0;
+
+
+        for (int i = 0; i < oldVal.length; i++) {
+
+
 
             tmpTime  = oldTime[i] - now;
-            tmpTime /= 100;
 
+            tmpTime /= 3600;
 
-
-            newGraph[i] = new DataPoint(tmpTime, oldVal[i]);
-            graphLastXValue = tmpTime;
+            if (tmpTime > graphLastXValue) {
+                newGraph[count] = new DataPoint(tmpTime, oldVal[i]);
+                graphLastXValue = tmpTime;
+                count++;
+            }
 
         }
 
@@ -60,7 +83,7 @@ public class Graph {
             @Override
             public void onTap(Series series, DataPointInterface dataPoint) {
                 Toast toast;
-                toast = Toast.makeText(context, "$ " + dataPoint.getY(), Toast.LENGTH_SHORT);
+                toast = Toast.makeText(context, " $ " + dataPoint.getY(), Toast.LENGTH_SHORT);
                 toast.setGravity(Gravity.NO_GRAVITY, 0, 0);
                 toast.setDuration(Toast.LENGTH_SHORT);
                 toast.show();
@@ -79,14 +102,10 @@ public class Graph {
         tmpVal /= 1000;
 
         tmpTime = newTime - now;
-        if (tmpTime / 1000 > graphLastXValue) {
-            graphLastXValue = tmpTime / 1000;
+        tmpTime /= 3600000;
+        if (tmpTime > graphLastXValue) {
+            graphLastXValue = tmpTime;
             mSeries.appendData(new DataPoint(graphLastXValue, newVal), true, Integer.MAX_VALUE);
         }
     }
-
-
-
-    //FOR TESTING PURPOSES
-
 }

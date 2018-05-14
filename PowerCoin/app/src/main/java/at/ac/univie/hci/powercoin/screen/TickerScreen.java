@@ -82,6 +82,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     private Runnable mTimer;
     private Graph graph;
     private String currency = " Dollar ";
+    private String currSymbol = " $ ";
 
     /** TEXTVIEW RELATED
      *
@@ -170,7 +171,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
         sinceQueue = Volley.newRequestQueue(this);
         //every hour for 24 hours
-        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=24&since=" + (System.currentTimeMillis() / 1000L - 86400);
+        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=500&since=" + (System.currentTimeMillis() / 1000L - 86400);
         timeperiodView.setText("last 24 hours");
 
         loadGraph();
@@ -207,15 +208,15 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
                             //if course has fallen
                             if (change < 0) {
-                                changeView.setText("-" + dec.format(change));
+                                changeView.setText("-" + dec.format(change) + currSymbol);
                                 changeView.setTextColor(Color.RED);
                             }
                             //if course has risen
                             if (change > 0) {
-                                changeView.setText("+" + dec.format(change));
-                                changeView.setTextColor(Color.GREEN);
+                                changeView.setText("+" + dec.format(change) + currSymbol);;
+                                changeView.setTextColor(Color.rgb(0, 100, 0));
                             }
-                            else {
+                            if (change == 0) {
                                 changeView.setText("No Change");
                                 changeView.setTextColor(Color.BLACK);
                             }
@@ -250,7 +251,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
 
         graphView.getViewport().setScalable(true);
-        graphView.getViewport().setScalableY(true);
 
         NumberFormat currency = NumberFormat.getCurrencyInstance();
         NumberFormat time = NumberFormat.getInstance();
@@ -284,19 +284,18 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                             currencyView.setText(currency);
                             valueView.setText(dec.format(upVal));
 
-                            double change = firstVal - upVal;
+                            double change = upVal - firstVal;
 
                             if (change < 0) {
-                                changeView.setText("-" + dec.format(change));
+                                changeView.setText("-" + dec.format(change) + currSymbol);
                                 changeView.setTextColor(Color.RED);
                             }
                             //if course has risen
                             if (change > 0) {
-
-                                changeView.setText("+" + dec.format(change));
-                                changeView.setTextColor(Color.GREEN);
+                                changeView.setText("+" + dec.format(change) + currSymbol);
+                                changeView.setTextColor(Color.rgb(0, 100, 0));
                             }
-                            else {
+                            if (change == 0) {
                                 changeView.setText("No Change");
                                 changeView.setTextColor(Color.BLACK);
                             }
