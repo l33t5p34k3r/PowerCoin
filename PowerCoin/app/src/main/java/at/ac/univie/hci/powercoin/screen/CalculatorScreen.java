@@ -49,8 +49,8 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
 
 
     private TextInputLayout bitcoinWrapper;
+    private TextInputLayout bitcoinWrapper2;
     double bitcoinAmount;
-    private TextView bitcoinView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +91,30 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
             }
         });
 
+        apiFunction();
 
+
+
+
+
+        Button buttonEuro = findViewById(R.id.buttonEuro);
+        buttonEuro.setOnClickListener(this);
+
+        Button buttonDollar = findViewById(R.id.buttonDollar);
+        buttonDollar.setOnClickListener(this);
+
+
+        bitcoinWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
+        bitcoinWrapper2 = (TextInputLayout) findViewById(R.id.textInputEurDol);
+
+
+
+
+
+
+    }
+
+    private void apiFunction() {
         upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
         requestQueueDollar = Volley.newRequestQueue( this);
 
@@ -137,25 +160,6 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
                     }
                 });
         requestQueueEuro.add(eurRequest);
-
-
-
-
-        Button buttonEuro = findViewById(R.id.buttonEuro);
-        buttonEuro.setOnClickListener(this);
-
-        Button buttonDollar = findViewById(R.id.buttonDollar);
-        buttonDollar.setOnClickListener(this);
-
-
-        bitcoinWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
-        bitcoinView = findViewById(R.id.resultNum);
-
-
-
-
-
-
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -213,10 +217,20 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
         double bitcoinVal = 0;
         if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
+            Log.d("VAL", Double.toString(upValEuro));
+            bitcoinAmount = bitcoinVal * upValEuro;
+            bitcoinWrapper2.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper.getEditText().setText("");
+
         }
-        Log.d("VAL", Double.toString(upValEuro));
-        bitcoinAmount = bitcoinVal * upValEuro;
-        bitcoinView.setText(Double.toString(bitcoinAmount));
+        else if( isDouble( bitcoinWrapper2.getEditText().getText().toString())){
+            bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
+            Log.d("VAL", Double.toString(upValEuro));
+            bitcoinAmount = bitcoinVal / upValEuro;
+            bitcoinWrapper.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper2.getEditText().setText("");
+        }
+
     }
 
     private void dollarClicked() {
@@ -224,10 +238,19 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
         double bitcoinVal = 0;
         if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
+            Log.d("VAL", Double.toString(upValDollar));
+            bitcoinAmount = bitcoinVal * upValDollar;
+            bitcoinWrapper2.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper.getEditText().setText("");
         }
-        Log.d("VAL", Double.toString(upValDollar));
-        bitcoinAmount = bitcoinVal * upValDollar;
-        bitcoinView.setText(Double.toString(bitcoinAmount));
+        else if( isDouble( bitcoinWrapper2.getEditText().getText().toString())){
+            bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
+            Log.d("VAL", Double.toString(upValDollar));
+            bitcoinAmount = bitcoinVal / upValDollar;
+            bitcoinWrapper.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper2.getEditText().setText("");
+        }
+
 
     }
 
