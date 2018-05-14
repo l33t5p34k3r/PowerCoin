@@ -63,7 +63,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     private RequestQueue upQueue;
     private String upUrl;
     private double upVal;
-    private long upTime = 0;
+    private long upTime;
 
     private RequestQueue sinceQueue;
     private String sinceUrl;
@@ -179,14 +179,13 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     //fills graph with intel
     private void loadGraph () {
-
         JsonRequest sinceReq = new JsonObjectRequest(
 
                 Request.Method.GET, sinceUrl, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
+                        Log.i("LOAD_API_RESPONSE", response.toString());
 
                         try {
 
@@ -242,7 +241,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 });
         sinceQueue.add(sinceReq);
 
-    }
+    } //TODO: Scaling for different Time Periods
 
     private void createGraph() {
         //GRAPH-RELATED STUFF HERE (NO TOUCH)
@@ -275,7 +274,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
+                        Log.i("UPDATE_API_RESPONSE", response.toString());
                         try {
 
                             JSONObject data = response.getJSONObject("result");
@@ -310,8 +309,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                                     Toast.LENGTH_LONG).show();
                             Log.e("PARSER_ERROR", e.getMessage());
                         }
-
-
                     }
                 },
                 new Response.ErrorListener() {
@@ -325,10 +322,8 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 }
         );
         upQueue.add(upRequest);
-        graph.updateGraph(upVal, System.currentTimeMillis());
-
-
     }
+
 
 
     //AUTO UPDATE STUFF HERE
@@ -342,11 +337,12 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             public void run() {
 
                 updateGraph();
-                mHandler.postDelayed(this, 1000);
+
+                mHandler.postDelayed(this, 15000);
 
             }
         };
-        mHandler.postDelayed(mTimer, 5000);
+        mHandler.postDelayed(mTimer, 15000);
         Log.d("GRAPH", "Successfully updated automatically!");
     }
 

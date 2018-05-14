@@ -35,7 +35,6 @@ public class Graph {
         Log.d("GRAPH", "New Graph being created");
 
         DataPoint[] newGraph = new DataPoint[oldVal.length];
-        System.out.println("huihui: " + oldVal.length);
 
         for (int i = 0; i < newGraph.length; i++) {
 
