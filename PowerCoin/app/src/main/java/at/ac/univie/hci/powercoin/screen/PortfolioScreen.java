@@ -17,6 +17,17 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,10 +48,22 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
     private TextView bitcoinView;
+    private TextView euroDollarView;
 
     private TextInputLayout bitcoinWrapper;
     double bitcoinAmount;
     public static final String HISTORY_MESSAGE = "historyFile";
+
+
+
+    //API
+    private String upUrlDollar;
+    private String upUrlEuro;
+    private double upValDollar;
+    private double upValEuro;
+    private RequestQueue requestQueueDollar;
+    private RequestQueue requestQueueEuro;
+
 
     //--------------
     //Main Functions
@@ -51,6 +74,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_portfolio_screen);
         bitcoinView = findViewById(R.id.valNum);
+        euroDollarView = findViewById(R.id.valEurDol);
 
         mDrawerLayout = findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
@@ -89,6 +113,9 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         });
 
 
+        //API
+        apiFunction();
+
 
         //Portfolio Functions
 
@@ -101,6 +128,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             bitcoinText = Double.toString(bitcoinAmount);
             bitcoinView.setText(bitcoinText);
         } else bitcoinView.setText(bitcoinText);
+        newConversion();
 
         //this.deleteFile("PortfolioHistory.txt"); //THIS IS USED TO DELETE FILE FOR DEBUG PURPOSES
 
@@ -112,6 +140,9 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         Button buttonHistory = findViewById(R.id.buttonHistory);
         buttonHistory.setOnClickListener(this);
+
+        Button buttonDeleteH = findViewById(R.id.buttonDeleteHistory);
+        buttonDeleteH.setOnClickListener(this);
 
         bitcoinWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
     }
@@ -132,9 +163,79 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                 Log.d("HISTORY_BUTTON", "Button was clicked!");
                 historyClicked();
                 break;
+            case R.id.buttonDeleteHistory:
+                Log.d("DELETE_BUTTON", "Button was clicked!");
+                deleteHistory();
+                break;
             default:
                 throw new RuntimeException("Unknown button ID");
         }
+
+        newConversion();
+
+    }
+
+    private void deleteHistory() {
+        this.deleteFile("PortfolioHistory.txt");
+        Log.i("DELETE_BUTTON", "History was deleted!");
+    }
+
+    public void newConversion(){
+        double valueEuro;
+        double valueDollar;
+        valueEuro = bitcoinAmount*upValEuro;
+        valueDollar = bitcoinAmount*upValDollar;
+        String textEurDol;
+        textEurDol = " = " + valueEuro + " Euro / " + valueDollar + " Dollar";
+        euroDollarView.setText(textEurDol);
+    }
+
+    public void apiFunction(){
+        upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
+        requestQueueDollar = Volley.newRequestQueue( this);
+
+        JsonRequest dollarRequest = new JsonObjectRequest(
+                Request.Method.GET, upUrlDollar, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("API_RESPONSE", response.toString());
+                        upValDollar = UpProcessResult(response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(PortfolioScreen.this,
+                                "Please try again!",
+                                Toast.LENGTH_LONG).show();
+                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                    }
+                });
+        requestQueueDollar.add(dollarRequest);
+
+        upUrlEuro = "https://api.cryptowat.ch/markets/kraken/btceur/price";
+        requestQueueEuro = Volley.newRequestQueue( this);
+
+        JsonRequest eurRequest = new JsonObjectRequest(
+                Request.Method.GET, upUrlEuro, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("API_RESPONSE", response.toString());
+                        upValEuro = UpProcessResult(response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(PortfolioScreen.this,
+                                "Please try again!",
+                                Toast.LENGTH_LONG).show();
+                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                    }
+                });
+        requestQueueEuro.add(eurRequest);
     }
 
     //------------
@@ -203,6 +304,23 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     //---------------
     //Other Functions
     //---------------
+
+    private double UpProcessResult (JSONObject apiResponse) {
+        try {
+
+            JSONObject data = apiResponse.getJSONObject("result");
+            double upVal = data.getDouble("price");
+            return upVal;
+
+        } catch(JSONException e){
+            Toast.makeText(PortfolioScreen.this,
+                    "Could not parse API response!",
+                    Toast.LENGTH_LONG).show();
+            Log.e("PARSER_ERROR", e.getMessage());
+        }
+        return 0;
+    }
+
 
     /**
      * Writes Bitcoin and other data (such as date) to a file (wallet)

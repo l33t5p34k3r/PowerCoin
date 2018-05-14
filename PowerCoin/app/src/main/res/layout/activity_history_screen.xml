@@ -42,7 +42,6 @@
                     android:id="@+id/textViewHist"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:text="TextView"
                     tools:layout_editor_absoluteX="41dp"
                     tools:layout_editor_absoluteY="95dp" />
             </LinearLayout>

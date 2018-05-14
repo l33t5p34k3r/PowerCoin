@@ -9,11 +9,13 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import at.ac.univie.hci.powercoin.R;
 
-public class HistoryScreen  extends AppCompatActivity{
+public class HistoryScreen  extends AppCompatActivity {
 
     /**HAMBURGER-MENU RELATED
      *
@@ -67,6 +69,10 @@ public class HistoryScreen  extends AppCompatActivity{
         historyView = findViewById(R.id.textViewHist);
         String historyText = intent.getStringExtra(PortfolioScreen.HISTORY_MESSAGE);
         historyView.setText(historyText);
+
+
+
+
     }
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -98,5 +104,6 @@ public class HistoryScreen  extends AppCompatActivity{
         Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
     }
+
 
 }
