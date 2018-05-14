@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -177,6 +179,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
     private void deleteHistory() {
         this.deleteFile("PortfolioHistory.txt");
+        bitcoinAmount = 0;
+        bitcoinView.setText("0");
         Log.i("DELETE_BUTTON", "History was deleted!");
     }
 
@@ -186,8 +190,16 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         valueEuro = bitcoinAmount*upValEuro;
         valueDollar = bitcoinAmount*upValDollar;
         String textEurDol;
-        textEurDol = " = " + valueEuro + " Euro / " + valueDollar + " Dollar";
+        textEurDol = " = " + round(valueEuro, 2) + " Euro / " + round(valueDollar, 2) + " Dollar";
         euroDollarView.setText(textEurDol);
+    }
+
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bigD = new BigDecimal(value);
+        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
+        return bigD.doubleValue();
     }
 
     public void apiFunction(){
@@ -250,6 +262,10 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
             bitcoinAmount += Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
+            if(bitcoinAmount < 0){
+                bitcoinAmount = 0;
+                Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
+            }
             date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         }
         else{
@@ -273,6 +289,10 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
             bitcoinAmount -= Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
+            if(bitcoinAmount < 0){
+                bitcoinAmount = 0;
+                Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
+            }
             date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         }
         else{
