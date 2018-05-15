@@ -17,19 +17,40 @@ import at.ac.univie.hci.powercoin.R;
 
 public class HistoryScreen  extends AppCompatActivity {
 
-    /**HAMBURGER-MENU RELATED
-     *
-     */
+    //MENU RELATED
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
+    //VIEW RELATED
     private TextView historyView;
+
+
+    //--------------
+    //Main Functions
+    //--------------
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history_screen);
 
+        menuInitialization();
+
+        Intent intent = getIntent();
+
+        historyView = findViewById(R.id.textViewHist);
+        String historyText = intent.getStringExtra(PortfolioScreen.HISTORY_MESSAGE);
+        historyView.setText(historyText);
+    }
+
+    //---------------
+    //Other Functions
+    //---------------
+
+    /**
+     * Initializes Menu, allowing the user to go to a different screen
+     */
+    private void menuInitialization() {
         mDrawerLayout = findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
 
@@ -63,24 +84,15 @@ public class HistoryScreen  extends AppCompatActivity {
                 return false;
             }
         });
-
-        Intent intent = getIntent();
-
-        historyView = findViewById(R.id.textViewHist);
-        String historyText = intent.getStringExtra(PortfolioScreen.HISTORY_MESSAGE);
-        historyView.setText(historyText);
-
-
-
-
     }
-    public boolean onOptionsItemSelected(MenuItem item) {
 
-        //enables Hamburger-Menu to be opened by pressing the button
+    /**
+     * Menu-Related Functions
+     */
+    public boolean onOptionsItemSelected(MenuItem item) {
         if(mToggle.onOptionsItemSelected(item)) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

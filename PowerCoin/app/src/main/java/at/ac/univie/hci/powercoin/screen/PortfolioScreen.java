@@ -47,18 +47,20 @@ import at.ac.univie.hci.powercoin.R;
 
 public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener {
 
+    //MENU RELATED
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
+
+    //CONVERSION RELATED
     private TextView bitcoinView;
     private TextView euroDollarView;
 
+    //HISTORY RELATED
     private TextInputLayout bitcoinWrapper;
     double bitcoinAmount;
     public static final String HISTORY_MESSAGE = "historyFile";
 
-
-
-    //API
+    //API RELATED
     private String upUrlDollar;
     private String upUrlEuro;
     private double upValDollar;
@@ -78,42 +80,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         bitcoinView = findViewById(R.id.valNum);
         euroDollarView = findViewById(R.id.valEurDol);
 
-        mDrawerLayout = findViewById(R.id.drawerLayout);
-        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
-
-
-
-        mDrawerLayout.addDrawerListener(mToggle);
-        mToggle.syncState();
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        NavigationView nv = findViewById(R.id.hamburger);
-        nv.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-
-                    case(R.id.nav_ticker):
-                        startTicker();
-                        break;
-                    case(R.id.nav_calc):
-                        startCalculator();
-                        break;
-                    case(R.id.nav_portfolio):
-                        startPortfolio();
-                        break;
-                    case(R.id.nav_notification):
-                        startNotification();
-                        break;
-                    case(R.id.nav_settings):
-                        startSettings();
-                        break;
-                }
-                return false;
-            }
-        });
-
+        menuInitialization();
 
         //API
         apiFunction();
@@ -132,7 +99,6 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         } else bitcoinView.setText(bitcoinText);
         newConversion();
 
-        //this.deleteFile("PortfolioHistory.txt"); //THIS IS USED TO DELETE FILE FOR DEBUG PURPOSES
 
         Button buttonAdd = findViewById(R.id.buttonAdd);
         buttonAdd.setOnClickListener(this);
@@ -172,87 +138,14 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             default:
                 throw new RuntimeException("Unknown button ID");
         }
-
         newConversion();
-
     }
 
-    private void deleteHistory() {
-        this.deleteFile("PortfolioHistory.txt");
-        bitcoinAmount = 0;
-        bitcoinView.setText("0");
-        Log.i("DELETE_BUTTON", "History was deleted!");
-    }
 
-    public void newConversion(){
-        double valueEuro;
-        double valueDollar;
-        valueEuro = bitcoinAmount*upValEuro;
-        valueDollar = bitcoinAmount*upValDollar;
-        String textEurDol;
-        textEurDol = " = " + round(valueEuro, 2) + " Euro / " + round(valueDollar, 2) + " Dollar";
-        euroDollarView.setText(textEurDol);
-    }
 
-    public static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
-
-        BigDecimal bigD = new BigDecimal(value);
-        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
-        return bigD.doubleValue();
-    }
-
-    public void apiFunction(){
-        upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
-        requestQueueDollar = Volley.newRequestQueue( this);
-
-        JsonRequest dollarRequest = new JsonObjectRequest(
-                Request.Method.GET, upUrlDollar, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
-                        upValDollar = UpProcessResult(response);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(PortfolioScreen.this,
-                                "Please try again!",
-                                Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
-                    }
-                });
-        requestQueueDollar.add(dollarRequest);
-
-        upUrlEuro = "https://api.cryptowat.ch/markets/kraken/btceur/price";
-        requestQueueEuro = Volley.newRequestQueue( this);
-
-        JsonRequest eurRequest = new JsonObjectRequest(
-                Request.Method.GET, upUrlEuro, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
-                        upValEuro = UpProcessResult(response);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(PortfolioScreen.this,
-                                "Please try again!",
-                                Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
-                    }
-                });
-        requestQueueEuro.add(eurRequest);
-    }
-
-    //------------
-    //Transactions
-    //------------
+    //----------
+    //Conversion
+    //----------
 
     /**
      * Adds set amount of Bitcoin to wallet
@@ -308,6 +201,18 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         bitcoinView.setText(bitcoinText);
     }
 
+    public void newConversion(){
+        double valueEuro;
+        double valueDollar;
+        valueEuro = bitcoinAmount*upValEuro;
+        valueDollar = bitcoinAmount*upValDollar;
+        String textEurDol;
+        textEurDol = " = " + round(valueEuro, 2) + " Euro / " + round(valueDollar, 2) + " Dollar";
+        euroDollarView.setText(textEurDol);
+    }
+
+
+
     //-------
     //History
     //-------
@@ -321,26 +226,52 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         startActivity(result);
     }
 
+    /**
+     * Clears History File
+     */
+    private void deleteHistory() {
+        this.deleteFile("PortfolioHistory.txt");
+        bitcoinAmount = 0;
+        bitcoinView.setText("0");
+        Log.i("DELETE_BUTTON", "History was deleted!");
+    }
+
+    /**
+     * Get the most recent amount of Bitcoin from wallet/transaction history
+     */
+    public void portfolioStart(){
+        String str = readFromFile(this);
+        String[] parts = str.split("[\\)]");
+        String part2 = parts[parts.length-1];
+
+        Pattern p = Pattern.compile("(\\d+(?:\\.\\d+))");
+        Matcher m = p.matcher(part2);
+        double d = 0;
+        while(m.find()) {
+            d = Double.parseDouble(m.group(1));
+            System.out.println(d);
+        }
+        bitcoinAmount = d;
+        Log.d("FILE", "CURRENT BITCOIN DEBUG: " + bitcoinAmount);
+    }
+
     //---------------
     //Other Functions
     //---------------
 
-    private double UpProcessResult (JSONObject apiResponse) {
-        try {
+    /**
+     * Rounding Function
+     * @param value = number that should be rounded
+     * @param places = amount of decimals to be rounded on
+     * @return rounded number
+     */
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
 
-            JSONObject data = apiResponse.getJSONObject("result");
-            double upVal = data.getDouble("price");
-            return upVal;
-
-        } catch(JSONException e){
-            Toast.makeText(PortfolioScreen.this,
-                    "Could not parse API response!",
-                    Toast.LENGTH_LONG).show();
-            Log.e("PARSER_ERROR", e.getMessage());
-        }
-        return 0;
+        BigDecimal bigD = new BigDecimal(value);
+        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
+        return bigD.doubleValue();
     }
-
 
     /**
      * Writes Bitcoin and other data (such as date) to a file (wallet)
@@ -393,25 +324,6 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * Get the most recent amount of Bitcoin from wallet/transaction history
-     */
-    public void portfolioStart(){
-        String str = readFromFile(this);
-        String[] parts = str.split("[\\)]");
-        String part2 = parts[parts.length-1];
-
-        Pattern p = Pattern.compile("(\\d+(?:\\.\\d+))");
-        Matcher m = p.matcher(part2);
-        double d = 0;
-        while(m.find()) {
-            d = Double.parseDouble(m.group(1));
-            System.out.println(d);
-        }
-        bitcoinAmount = d;
-        Log.d("FILE", "CURRENT BITCOIN DEBUG: " + bitcoinAmount);
-    }
-
-    /**
      * Checks if a String is Double
      * @param str
      * @return true if String is Double || false if String is not Double
@@ -425,13 +337,124 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    public boolean onOptionsItemSelected(MenuItem item) {
+    /**
+     * This function calls the API and gets the newest bitcoin value in USD and EUR
+     */
+    public void apiFunction(){
+        upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
+        requestQueueDollar = Volley.newRequestQueue( this);
 
-        //enables Hamburger-Menu to be opened by pressing the button
+        JsonRequest dollarRequest = new JsonObjectRequest(
+                Request.Method.GET, upUrlDollar, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("API_RESPONSE", response.toString());
+                        upValDollar = UpProcessResult(response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(PortfolioScreen.this,
+                                "Please try again!",
+                                Toast.LENGTH_LONG).show();
+                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                    }
+                });
+        requestQueueDollar.add(dollarRequest);
+
+        upUrlEuro = "https://api.cryptowat.ch/markets/kraken/btceur/price";
+        requestQueueEuro = Volley.newRequestQueue( this);
+
+        JsonRequest eurRequest = new JsonObjectRequest(
+                Request.Method.GET, upUrlEuro, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("API_RESPONSE", response.toString());
+                        upValEuro = UpProcessResult(response);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(PortfolioScreen.this,
+                                "Please try again!",
+                                Toast.LENGTH_LONG).show();
+                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                    }
+                });
+        requestQueueEuro.add(eurRequest);
+    }
+
+    /**
+     * This function gets the API Response and gives back the newest BTC price
+     * @param apiResponse
+     * @return upVal - the newest bitcoin value
+     */
+    private double UpProcessResult (JSONObject apiResponse) {
+        try {
+
+            JSONObject data = apiResponse.getJSONObject("result");
+            double upVal = data.getDouble("price");
+            return upVal;
+
+        } catch(JSONException e){
+            Toast.makeText(PortfolioScreen.this,
+                    "Could not parse API response!",
+                    Toast.LENGTH_LONG).show();
+            Log.e("PARSER_ERROR", e.getMessage());
+        }
+        return 0;
+    }
+
+    /**
+     * Initializes Menu, allowing the user to go to a different screen
+     */
+    private void menuInitialization() {
+        mDrawerLayout = findViewById(R.id.drawerLayout);
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        NavigationView nv = findViewById(R.id.hamburger);
+        nv.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+
+                    case(R.id.nav_ticker):
+                        startTicker();
+                        break;
+                    case(R.id.nav_calc):
+                        startCalculator();
+                        break;
+                    case(R.id.nav_portfolio):
+                        startPortfolio();
+                        break;
+                    case(R.id.nav_notification):
+                        startNotification();
+                        break;
+                    case(R.id.nav_settings):
+                        startSettings();
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Menu-Related Functions
+     */
+    public boolean onOptionsItemSelected(MenuItem item) {
         if(mToggle.onOptionsItemSelected(item)) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

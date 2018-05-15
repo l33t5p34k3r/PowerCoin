@@ -16,26 +16,34 @@ import java.util.Set;
 
 public class Graph {
 
-
+    //Data Points of Graph
     private LineGraphSeries<DataPoint> mSeries;
 
+    //Graph Variables
     private double graphLastXValue = -4000000.0;
     private double tmpTime;
     private double tmpVal;
     private long now;
     private Context context;
 
+    /**
+     * Graph Context setter
+     * @param context
+     */
     public Graph(Context context){
         this.context = context;
     }
 
-
-    //no idea how I did it, don't change
+    /**
+     * Initializes graph
+     * @param oldVal
+     * @param oldTime
+     * @return data points with values for graph
+     */
     public LineGraphSeries<DataPoint> newGraph(double [] oldVal, long [] oldTime){
-        Log.d("GRAPH", "New Graph being created");
+        Log.i("GRAPH", "New Graph being created");
 
         now  = System.currentTimeMillis();
-
         Long [] time = new Long[oldTime.length];
 
         for (int i = 0; i < oldVal.length; i++) {
@@ -57,10 +65,7 @@ public class Graph {
 
         for (int i = 0; i < oldVal.length; i++) {
 
-
-
             tmpTime  = oldTime[i] - now;
-
             tmpTime /= 3600;
 
             if (tmpTime > graphLastXValue) {
@@ -68,10 +73,9 @@ public class Graph {
                 graphLastXValue = tmpTime;
                 count++;
             }
-
         }
 
-        //add stuff here for changing the looks of the lines etc.
+        //Additional functions to change Graph Style
         mSeries = new LineGraphSeries<>(newGraph);
 
         mSeries.setDrawDataPoints(true);
@@ -90,13 +94,16 @@ public class Graph {
             }
         });
 
-        Log.d("GRAPH", "New Graph succesfully created");
+        Log.i("GRAPH", "New Graph succesfully created");
         return mSeries;
     }
 
+    /**
+     * Updates Graph
+     * @param newVal
+     * @param newTime
+     */
     public void updateGraph(double newVal, long newTime){
-        //Log.d("GRAPH", "Updating graph...");
-
         //needs to be changed for some reason, keep it!
         tmpVal = newVal;
         tmpVal /= 1000;
@@ -108,4 +115,5 @@ public class Graph {
             mSeries.appendData(new DataPoint(graphLastXValue, newVal), true, Integer.MAX_VALUE);
         }
     }
+
 }

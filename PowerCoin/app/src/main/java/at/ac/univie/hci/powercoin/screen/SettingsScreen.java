@@ -13,18 +13,33 @@ import at.ac.univie.hci.powercoin.R;
 
 public class SettingsScreen extends AppCompatActivity {
 
+    //MENU RELATED
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
+
+
+    //--------------
+    //Main Functions
+    //--------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings_screen);
 
+        menuInitialization();
+    }
+
+    //---------------
+    //Other Functions
+    //---------------
+
+    /**
+     * Initializes Menu, allowing the user to go to a different screen
+     */
+    private void menuInitialization() {
         mDrawerLayout = findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
-
-
 
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
@@ -58,13 +73,13 @@ public class SettingsScreen extends AppCompatActivity {
         });
     }
 
+    /**
+     * Menu-Related Functions
+     */
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        //enables Hamburger-Menu to be opened by pressing the button
         if(mToggle.onOptionsItemSelected(item)) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
