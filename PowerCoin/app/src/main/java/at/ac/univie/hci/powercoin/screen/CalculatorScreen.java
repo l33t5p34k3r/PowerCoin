@@ -26,6 +26,9 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import at.ac.univie.hci.powercoin.R;
 
 import static at.ac.univie.hci.powercoin.screen.PortfolioScreen.isDouble;
@@ -219,7 +222,7 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValEuro));
             bitcoinAmount = bitcoinVal * upValEuro;
-            bitcoinWrapper2.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper2.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper.getEditText().setText("");
 
         }
@@ -227,10 +230,18 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
             bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValEuro));
             bitcoinAmount = bitcoinVal / upValEuro;
-            bitcoinWrapper.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper2.getEditText().setText("");
         }
 
+    }
+
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bigD = new BigDecimal(value);
+        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
+        return bigD.doubleValue();
     }
 
     private void dollarClicked() {
@@ -240,14 +251,14 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValDollar));
             bitcoinAmount = bitcoinVal * upValDollar;
-            bitcoinWrapper2.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper2.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper.getEditText().setText("");
         }
         else if( isDouble( bitcoinWrapper2.getEditText().getText().toString())){
             bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValDollar));
             bitcoinAmount = bitcoinVal / upValDollar;
-            bitcoinWrapper.getEditText().setText(Double.toString(bitcoinAmount));
+            bitcoinWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper2.getEditText().setText("");
         }
 

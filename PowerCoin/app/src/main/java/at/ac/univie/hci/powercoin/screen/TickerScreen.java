@@ -1,11 +1,13 @@
 package at.ac.univie.hci.powercoin.screen;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -14,6 +16,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -30,13 +33,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import at.ac.univie.hci.powercoin.functionality.Graph;
 import at.ac.univie.hci.powercoin.R;
 
 
-public class TickerScreen extends AppCompatActivity implements View.OnClickListener {
+public class TickerScreen extends AppCompatActivity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     /**HAMBURGER-MENU RELATED
      *mDrawerLayout: Links to Layout for Hamburger Menu
@@ -59,12 +63,13 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     private RequestQueue upQueue;
     private String upUrl;
     private double upVal;
-    private long upTime = 0;
+    private long upTime;
 
     private RequestQueue sinceQueue;
     private String sinceUrl;
     private double [] sinceVal;
     private long [] sinceTime;
+    private double firstVal;
 
 
     /**GRAPH RELATED
@@ -76,7 +81,34 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     private final Handler mHandler = new Handler();
     private Runnable mTimer;
     private Graph graph;
-    private String currency = " $ ";
+    private String currency = " Dollar ";
+    private String currSymbol = " $ ";
+
+    /** TEXTVIEW RELATED
+     *
+     *
+     */
+
+    private TextView currencyView;
+    private TextView valueView;
+    private TextView changeView;
+    private TextView timeperiodView;
+
+    /**FORMATTING RELATED
+     *
+     *
+     */
+
+    private static DecimalFormat dec = new DecimalFormat(".##");
+
+    /**
+     *TESTING AREA
+     */
+    private SwipeRefreshLayout swipeUpdate;
+
+    /**
+     *TESTING AREA
+     */
 
 
     @Override
@@ -85,6 +117,15 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_ticker_screen);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        currencyView = findViewById(R.id.currency);
+        valueView = findViewById(R.id.value);
+        timeperiodView = findViewById(R.id.timeperiod);
+        changeView = findViewById(R.id.change);
+
+        currencyView.setText("Dollar");
+        valueView.setText("0");
+
 
 
 
@@ -130,18 +171,64 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
         sinceQueue = Volley.newRequestQueue(this);
         //every hour for 24 hours
-        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=24&since=" + (System.currentTimeMillis() / 1000L - 86400);
+        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=500&since=" + (System.currentTimeMillis() / 1000L - 86400);
+        timeperiodView.setText("last 24 hours");
 
+        loadGraph();
 
+    }
+
+    //fills graph with intel
+    private void loadGraph () {
         JsonRequest sinceReq = new JsonObjectRequest(
 
                 Request.Method.GET, sinceUrl, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
+                        Log.i("LOAD_API_RESPONSE", response.toString());
 
-                        sinceProcessResult(response);
+                        try {
+
+                            JSONArray data = response.getJSONArray("result");
+                            sinceVal = new double[data.length()];
+                            sinceTime = new long[data.length()];
+
+                            for(int i = 0; i < sinceVal.length; i++) {
+                                sinceVal[i] = data.getJSONArray(i).getDouble(2);
+                                sinceTime[i] = data.getJSONArray(i).getLong(1) * 1000L;
+                            }
+
+                            currencyView.setText(currency);
+                            valueView.setText(dec.format(sinceVal[sinceVal.length - 1]));
+
+                            firstVal = sinceVal[0];
+
+                            double change = sinceVal[sinceVal.length - 1] - firstVal;
+
+                            //if course has fallen
+                            if (change < 0) {
+                                changeView.setText("-" + dec.format(change) + currSymbol);
+                                changeView.setTextColor(Color.RED);
+                            }
+                            //if course has risen
+                            if (change > 0) {
+                                changeView.setText("+" + dec.format(change) + currSymbol);;
+                                changeView.setTextColor(Color.rgb(0, 100, 0));
+                            }
+                            if (change == 0) {
+                                changeView.setText("No Change");
+                                changeView.setTextColor(Color.BLACK);
+                            }
+
+                            createGraph();
+
+                        } catch(JSONException e){
+                            Toast.makeText(TickerScreen.this,
+                                    "Could not parse API response for Creation!",
+                                    Toast.LENGTH_LONG).show();
+                            Log.e("PARSER_ERROR", e.getMessage());
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -155,73 +242,88 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 });
         sinceQueue.add(sinceReq);
 
-    }
-
-
-
-    //fills graph with intel
-    private void sinceProcessResult (JSONObject apiResponse) {
-        try {
-
-            JSONArray data = apiResponse.getJSONArray("result");
-            sinceVal = new double[data.length()];
-            sinceTime = new long[data.length()];
-
-            for(int i = 0; i < sinceVal.length; i++) {
-                sinceVal[i] = data.getJSONArray(i).getDouble(2) * 1000;
-                sinceTime[i] = data.getJSONArray(i).getLong(1) * 1000;
-            }
-
-            for(int i = 0; i < sinceVal.length; i++) {
-                System.out.println(sinceTime[i]);
-            }
-
-            createGraph();
-
-        } catch(JSONException e){
-            Toast.makeText(TickerScreen.this,
-                    "Could not parse API response for Creation!",
-                    Toast.LENGTH_LONG).show();
-            Log.e("PARSER_ERROR", e.getMessage());
-        }
-    }
+    } //TODO: Scaling for different Time Periods
 
     private void createGraph() {
         //GRAPH-RELATED STUFF HERE (NO TOUCH)
         GraphView graphView = findViewById(R.id.graph);
-        graph = new Graph();
+        graph = new Graph(this);
         graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
 
         graphView.getViewport().setScalable(true);
-        graphView.getViewport().setScalableY(true);
 
         NumberFormat currency = NumberFormat.getCurrencyInstance();
         NumberFormat time = NumberFormat.getInstance();
         graphView.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter(time, currency));
 
+        swipeUpdate = findViewById(R.id.swiperefresh);
+        swipeUpdate.setOnRefreshListener(this);
 
-        Button buttonUpdateGraph = findViewById(R.id.graphManualUpdate);
-        buttonUpdateGraph.setOnClickListener(this);
+
+        Button buttonUpdate = findViewById(R.id.graphManualUpdate);
+        buttonUpdate.setOnClickListener(this);
         //END OF GRAPH-RELATED STUFF
 
     }
 
     //updates the graph
-    private void UpProcessResult (JSONObject apiResponse) {
-        try {
+    private void updateGraph () {
 
-            JSONObject data = apiResponse.getJSONObject("result");
-            upVal = data.getDouble("price");
-            upTime = System.currentTimeMillis();
-            graph.updateGraph(upVal, upTime);
+        JsonRequest upRequest = new JsonObjectRequest(
+                Request.Method.GET, upUrl, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("UPDATE_API_RESPONSE", response.toString());
+                        try {
 
-        } catch(JSONException e){
-            Toast.makeText(TickerScreen.this,
-                    "Could not parse API response!",
-                    Toast.LENGTH_LONG).show();
-            Log.e("PARSER_ERROR", e.getMessage());
-        }
+                            JSONObject data = response.getJSONObject("result");
+                            upVal = data.getDouble("price");
+                            upTime = System.currentTimeMillis();
+
+                            currencyView.setText(currency);
+                            valueView.setText(dec.format(upVal));
+
+                            double change = upVal - firstVal;
+
+                            if (change < 0) {
+                                changeView.setText("-" + dec.format(change) + currSymbol);
+                                changeView.setTextColor(Color.RED);
+                            }
+                            //if course has risen
+                            if (change > 0) {
+                                changeView.setText("+" + dec.format(change) + currSymbol);
+                                changeView.setTextColor(Color.rgb(0, 100, 0));
+                            }
+                            if (change == 0) {
+                                changeView.setText("No Change");
+                                changeView.setTextColor(Color.BLACK);
+                            }
+
+                            graph.updateGraph(upVal, upTime);
+
+                        } catch(JSONException e){
+                            Toast.makeText(TickerScreen.this,
+                                    "Could not parse API response!",
+                                    Toast.LENGTH_LONG).show();
+                            Log.e("PARSER_ERROR", e.getMessage());
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(TickerScreen.this,
+                                "Please try again!",
+                                Toast.LENGTH_LONG).show();
+                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                    }
+                }
+        );
+        upQueue.add(upRequest);
     }
+
+
 
     //AUTO UPDATE STUFF HERE
     @Override
@@ -233,30 +335,13 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
 
-                JsonRequest upRequest = new JsonObjectRequest(
-                        Request.Method.GET, upUrl, null,
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                Log.i("API_RESPONSE", response.toString());
-                                UpProcessResult(response);
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(TickerScreen.this,
-                                        "Please try again!",
-                                        Toast.LENGTH_LONG).show();
-                                if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
-                            }
-                        }
-                );
-                upQueue.add(upRequest);
-                mHandler.postDelayed(this, 5000);
+                updateGraph();
+
+                mHandler.postDelayed(this, 15000);
+
             }
         };
-        mHandler.postDelayed(mTimer, 1000);
+        mHandler.postDelayed(mTimer, 15000);
         Log.d("GRAPH", "Successfully updated automatically!");
     }
 
@@ -273,32 +358,27 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             case R.id.graphManualUpdate:
 
                 Log.d("GRAPH", "Update Button was clicked!");
-                JsonRequest upReq = new JsonObjectRequest(
-                        Request.Method.GET, upUrl, null,
-                        new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                Log.i("API_RESPONSE", response.toString());
-                                UpProcessResult(response);
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(TickerScreen.this,
-                                        "Please try again!",
-                                        Toast.LENGTH_LONG).show();
-                                if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
-                            }
-                        });
-                upQueue.add(upReq);
-                graph.updateGraph(upVal, System.currentTimeMillis());
+
+                updateGraph();
+
                 Log.d("GRAPH", "Successfully updated!");
                 break;
             default:
                 throw new RuntimeException("Unknown button ID");
         }
     }
+
+    //for the swipe refresh
+    @Override
+    public void onRefresh() {
+        Log.d("GRAPH", "Swipe was used!");
+
+        updateGraph();
+
+        swipeUpdate.setRefreshing(false);
+        Log.d("GRAPH", "Successfully updated with swipe!");
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -350,7 +430,4 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(this, PortfolioScreen.class);
         startActivity(intent);
     }
-
-
-
 }
