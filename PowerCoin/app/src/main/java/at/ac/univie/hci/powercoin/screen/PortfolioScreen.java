@@ -95,7 +95,6 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
 
         //Portfolio Functions
-
         File file = new File(PortfolioScreen.this.getFilesDir().getAbsolutePath(), "PortfolioHistory.txt");
         if(file.exists()){
             portfolioStart();
@@ -159,7 +158,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * Adds set amount of Bitcoin to wallet
      */
     public void addClicked(){
-        String date = "";
+        String date;
 
         if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
             bitcoinAmount += Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
@@ -167,7 +166,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                 bitcoinAmount = 0;
                 Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
             }
-            date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            date = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
         }
         else{
             Toast.makeText(PortfolioScreen.this,
@@ -186,7 +185,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * Removes set amount of Bitcoin from wallet.
      */
     public void removeClicked(){
-        String date = "";
+        String date;
 
         if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
             bitcoinAmount -= Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
@@ -194,7 +193,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                 bitcoinAmount = 0;
                 Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
             }
-            date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            date = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
         }
         else{
             Toast.makeText(PortfolioScreen.this,
