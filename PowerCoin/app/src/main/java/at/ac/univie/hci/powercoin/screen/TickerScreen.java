@@ -111,8 +111,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ticker_screen);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         currencyView = findViewById(R.id.currency);
         valueView = findViewById(R.id.value);
@@ -400,13 +398,15 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     /**
      * Menu-Related Functions
      */
+
+    /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_ticker_screen, menu);
         return true;
     }
-
+*/
     /**
      * Handle action bar item clicks here. The action bar will
      * automatically handle clicks on the Home/Up button, so long
@@ -414,7 +414,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
 
         //enables Hamburger-Menu to be opened by pressing the button
         if(mToggle.onOptionsItemSelected(item)) {
