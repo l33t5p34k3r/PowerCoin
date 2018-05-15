@@ -1,13 +1,19 @@
 package at.ac.univie.hci.powercoin.screen;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 
 import at.ac.univie.hci.powercoin.R;
 
@@ -67,6 +73,33 @@ public class NotificationScreen extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    // ACTUAL NOTIFICATIONS
+
+    public void sendNotification(View view) {
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this);
+
+        //Create the intent that’ll fire when the user taps the notification//
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.androidauthority.com/"));
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        mBuilder.setContentIntent(pendingIntent);
+
+        mBuilder.setSmallIcon(R.drawable.notification_icon);
+        mBuilder.setContentTitle("My notification");
+        mBuilder.setContentText("Hello World!");
+
+        NotificationManager mNotificationManager =
+
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        mNotificationManager.notify(001, mBuilder.build());
+    }
+
+    // ACTUAL NOTIFICATIONS END
 
     public void startTicker() {
         Intent intent = new Intent(this, TickerScreen.class);
