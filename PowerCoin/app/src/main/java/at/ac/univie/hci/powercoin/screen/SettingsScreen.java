@@ -13,7 +13,10 @@ import at.ac.univie.hci.powercoin.R;
 
 public class SettingsScreen extends AppCompatActivity {
 
-    //MENU RELATED
+    /**HAMBURGER-MENU RELATED
+     *mDrawerLayout: Links to Layout for Hamburger Menu
+     *mToggle: makes the Hamburger Button clickable
+     */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 

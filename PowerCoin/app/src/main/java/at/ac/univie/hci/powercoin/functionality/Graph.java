@@ -16,10 +16,18 @@ import java.util.Set;
 
 public class Graph {
 
-    //Data Points of Graph
+    /**
+     * mSeries: initializes Array of DataPoints for Graph
+     */
     private LineGraphSeries<DataPoint> mSeries;
 
-    //Graph Variables
+    /**
+     * graphLastXValue: refers to the last x-value in the graph
+     * tmpTime: temporal value mostly used for time
+     * tmpVal: temporal value mostly used for value of bitcoin
+     * now: value that saves the current time
+     * context: used for Toast messages on values
+     */
     private double graphLastXValue = -4000000.0;
     private double tmpTime;
     private double tmpVal;
@@ -36,8 +44,8 @@ public class Graph {
 
     /**
      * Initializes graph
-     * @param oldVal
-     * @param oldTime
+     * @param oldVal array of all the value-entries
+     * @param oldTime array of all the time-entries
      * @return data points with values for graph
      */
     public LineGraphSeries<DataPoint> newGraph(double [] oldVal, long [] oldTime){
@@ -62,7 +70,6 @@ public class Graph {
 
         int count = 0;
 
-
         for (int i = 0; i < oldVal.length; i++) {
 
             tmpTime  = oldTime[i] - now;
@@ -75,8 +82,8 @@ public class Graph {
             }
         }
 
-        //Additional functions to change Graph Style
         mSeries = new LineGraphSeries<>(newGraph);
+
 
         mSeries.setDrawDataPoints(true);
         mSeries.setDataPointsRadius(10);
@@ -115,5 +122,4 @@ public class Graph {
             mSeries.appendData(new DataPoint(graphLastXValue, newVal), true, Integer.MAX_VALUE);
         }
     }
-
 }

@@ -15,11 +15,16 @@ import at.ac.univie.hci.powercoin.R;
 
 public class HistoryScreen  extends AppCompatActivity {
 
-    //MENU RELATED
+    /**HAMBURGER-MENU RELATED
+     *mDrawerLayout: Links to Layout for Hamburger Menu
+     *mToggle: makes the Hamburger Button clickable
+     */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
-    //VIEW RELATED
+    /**VIEW RELATED
+     *
+     */
     private TextView historyView;
 
 

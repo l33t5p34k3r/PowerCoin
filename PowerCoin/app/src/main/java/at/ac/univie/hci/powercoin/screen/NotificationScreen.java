@@ -35,13 +35,14 @@ import at.ac.univie.hci.powercoin.functionality.NotificationDialog;
 public class NotificationScreen extends AppCompatActivity implements NotificationDialog.NotificationDialogListener {
 
     /**HAMBURGER-MENU RELATED
-     *
+     *mDrawerLayout: Links to Layout for Hamburger Menu
+     *mToggle: makes the Hamburger Button clickable
      */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
-    /**NOTIFICATION RELATED
-     *
+
+    /**API RELATED
      *
      */
     private final Handler mHandler = new Handler();
@@ -51,11 +52,19 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
     private double alert = 0;
     private RequestQueue priceQueue;
 
+    /**NOTIFICATION RELATED
+     *
+     *
+     */
+    NotificationCompat.Builder notification;
+
+
+    /**TEXT RELATED
+     *
+     */
     TextView currPrice;
     TextView entry1;
 
-    NotificationCompat.Builder notification;
-    private static final int uniqueID = 32321;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

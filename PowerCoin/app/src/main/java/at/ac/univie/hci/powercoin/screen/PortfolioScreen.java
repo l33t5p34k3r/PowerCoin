@@ -47,27 +47,35 @@ import at.ac.univie.hci.powercoin.R;
 
 public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener {
 
-    //MENU RELATED
+    /**HAMBURGER-MENU RELATED
+     *mDrawerLayout: Links to Layout for Hamburger Menu
+     *mToggle: makes the Hamburger Button clickable
+     */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
-    //CONVERSION RELATED
+    /**CONVERSION RELATED
+     *
+     */
     private TextView bitcoinView;
     private TextView euroDollarView;
 
-    //HISTORY RELATED
+    /**HISTORY RELATED
+     *
+     */
     private TextInputLayout bitcoinWrapper;
     double bitcoinAmount;
     public static final String HISTORY_MESSAGE = "historyFile";
 
-    //API RELATED
+    /**API RELATED
+     *
+     */
     private String upUrlDollar;
     private String upUrlEuro;
     private double upValDollar;
     private double upValEuro;
     private RequestQueue requestQueueDollar;
     private RequestQueue requestQueueEuro;
-
 
     //--------------
     //Main Functions
@@ -112,7 +120,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         Button buttonDeleteH = findViewById(R.id.buttonDeleteHistory);
         buttonDeleteH.setOnClickListener(this);
 
-        bitcoinWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
+        bitcoinWrapper = findViewById(R.id.textInputBTC);
     }
 
     @Override

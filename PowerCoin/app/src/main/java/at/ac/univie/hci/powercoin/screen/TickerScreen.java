@@ -42,7 +42,7 @@ import at.ac.univie.hci.powercoin.R;
 
 public class TickerScreen extends AppCompatActivity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
-    /**MENU RELATED
+    /**HAMBURGER-MENU RELATED
      *mDrawerLayout: Links to Layout for Hamburger Menu
      *mToggle: makes the Hamburger Button clickable
      */
@@ -83,21 +83,25 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     private String currency = " Dollar ";
     private String currSymbol = " $ ";
 
-    // TEXTVIEW RELATED
+    /**TEXT RELATED
+     * currencyView: displays the currency in text format
+     * valueView: displays the current Value of Bitcoin
+     * changeView: displays the difference in the last time period
+     * timeperiodView: displays the time period
+     *
+     * dec: creates format for values in changeView
+     */
     private TextView currencyView;
     private TextView valueView;
     private TextView changeView;
     private TextView timeperiodView;
 
-    //FORMATTING RELATED
     private static DecimalFormat dec = new DecimalFormat(".##");
 
-    /**
-     *TESTING
+    /**SWIPE-TO-UPDATE RELATED
+     * SwipeRefreshLayout: creates binds to SwipeRefreshLayout in activity_ticker_screen.xml
      */
     private SwipeRefreshLayout swipeUpdate;
-
-
 
     //--------------
     //Main Functions
@@ -214,7 +218,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                             }
                             //if course has risen
                             if (change > 0) {
-                                changeView.setText("+" + dec.format(change) + currSymbol);;
+                                changeView.setText("+" + dec.format(change) + currSymbol);
                                 changeView.setTextColor(Color.rgb(0, 100, 0));
                             }
                             if (change == 0) {
@@ -246,7 +250,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     } //TODO: Scaling for different Time Periods
 
     /**
-     * Updates Graph in set intervals with information from the API
+     * Updates Graph with the latest value from the API
      */
     private void updateGraph () {
         JsonRequest upRequest = new JsonObjectRequest(
@@ -308,7 +312,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     //-----------
 
     /**
-     * While the app is open on the Ticker Screen, updates happen in an interval
+     * While the Activity is open on the Ticker Screen, updates happen in an interval
      */
     @Override
     public void onResume() {
@@ -329,7 +333,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * When app is paused, pause function
+     * When Activity is paused, pause function
      */
     @Override
     public void onPause() {
@@ -338,7 +342,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Swipe refresh
+     * Uses updateGraph to enable swipe-to-update
      */
     @Override
     public void onRefresh() {
@@ -355,7 +359,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     //---------------
 
     /**
-     * Initializes Menu, allowing the user to go to a different screen
+     * Initializes Hamburger Menu, allowing the user to go to a different screen
      */
     private void menuInitialization() {
         mDrawerLayout = findViewById(R.id.drawerLayout);
@@ -417,6 +421,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             return true;
         }
         return super.onOptionsItemSelected(item);
+
         /**kept for future reference
          *noinspection SimplifiableIfStatement
          *if (id == R.id.action_settings) {

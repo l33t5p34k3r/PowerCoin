@@ -34,11 +34,16 @@ import static at.ac.univie.hci.powercoin.screen.PortfolioScreen.isDouble;
 
 public class CalculatorScreen extends AppCompatActivity implements View.OnClickListener {
 
-    //MENU RELATED
+    /**HAMBURGER-MENU RELATED
+     *mDrawerLayout: Links to Layout for Hamburger Menu
+     *mToggle: makes the Hamburger Button clickable
+     */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
-    //API RELATED
+    /**API RELATED
+     *
+     */
     private String upUrlDollar;
     private String upUrlEuro;
     private double upValDollar;
@@ -46,7 +51,9 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
     private RequestQueue requestQueueDollar;
     private RequestQueue requestQueueEuro;
 
-    //CALCULATOR RELATED
+    /**CALCULATOR RELATED
+     *
+     */
     private TextInputLayout bitcoinWrapper;
     private TextInputLayout bitcoinWrapper2;
     double bitcoinAmount;
@@ -70,8 +77,8 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
         Button buttonDollar = findViewById(R.id.buttonDollar);
         buttonDollar.setOnClickListener(this);
 
-        bitcoinWrapper = (TextInputLayout) findViewById(R.id.textInputBTC);
-        bitcoinWrapper2 = (TextInputLayout) findViewById(R.id.textInputEurDol);
+        bitcoinWrapper = findViewById(R.id.textInputBTC);
+        bitcoinWrapper2 = findViewById(R.id.textInputEurDol);
 
     }
 

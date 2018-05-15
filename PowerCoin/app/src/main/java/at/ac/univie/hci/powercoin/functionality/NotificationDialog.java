@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import at.ac.univie.hci.powercoin.R;
+
 public class NotificationDialog extends AppCompatDialogFragment {
 
     private EditText value;
