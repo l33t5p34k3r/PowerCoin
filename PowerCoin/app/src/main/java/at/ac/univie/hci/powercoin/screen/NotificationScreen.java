@@ -81,16 +81,15 @@ public class NotificationScreen extends AppCompatActivity {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this);
 
-        //Create the intent that’ll fire when the user taps the notification//
+        //What happens after the user taps the notification
+        //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.androidauthority.com/"));
+        //PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.androidauthority.com/"));
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        mBuilder.setContentIntent(pendingIntent);
+        //mBuilder.setContentIntent(pendingIntent);
 
         mBuilder.setSmallIcon(R.drawable.notification_icon);
-        mBuilder.setContentTitle("My notification");
-        mBuilder.setContentText("Hello World!");
+        mBuilder.setContentTitle("PowerCoin");
+        mBuilder.setContentText("Bitcoin has reached the desired market value!");
 
         NotificationManager mNotificationManager =
 
