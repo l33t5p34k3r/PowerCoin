@@ -2,22 +2,37 @@ package at.ac.univie.hci.powercoin.screen;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import at.ac.univie.hci.powercoin.R;
+import at.ac.univie.hci.powercoin.functionality.NotificationDialog;
 
-public class NotificationScreen extends AppCompatActivity {
+public class NotificationScreen extends AppCompatActivity implements NotificationDialog.NotificationDialogListener {
 
     /**HAMBURGER-MENU RELATED
      *
@@ -25,12 +40,29 @@ public class NotificationScreen extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
+    /**NOTIFICATION RELATED
+     *
+     *
+     */
+    private final Handler mHandler = new Handler();
+    private Runnable mTimer;
+    private String priceUrl = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
+    private double price;
+    private double alert = 0;
+    private RequestQueue priceQueue;
+
+    TextView currPrice;
+    TextView entry1;
+
+    NotificationCompat.Builder notification;
+    private static final int uniqueID = 32321;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification_screen);
         mDrawerLayout = findViewById(R.id.drawerLayout);
-        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
@@ -43,25 +75,141 @@ public class NotificationScreen extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
 
-                    case(R.id.nav_ticker):
+                    case (R.id.nav_ticker):
                         startTicker();
                         break;
-                    case(R.id.nav_calc):
+                    case (R.id.nav_calc):
                         startCalculator();
                         break;
-                    case(R.id.nav_notification):
+                    case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case(R.id.nav_portfolio):
+                    case (R.id.nav_portfolio):
                         startPortfolio();
                         break;
-                    case(R.id.nav_settings):
+                    case (R.id.nav_settings):
                         startSettings();
                         break;
                 }
                 return false;
             }
         });
+
+        //NOTIFICATION (AND API)STUFF HERE
+
+        priceQueue = Volley.newRequestQueue(this);
+
+        currPrice = findViewById(R.id.valueNotification);
+
+        setPrice();
+        currPrice.setText(Double.toString(price));
+        entry1 = findViewById(R.id.entry1);
+
+        FloatingActionButton button = findViewById(R.id.addFloatingActionButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openDialog();
+            }
+        });
+
+        notification = new NotificationCompat.Builder(this, null);
+        notification.setAutoCancel(true);
+
+
+    }
+
+    public void openDialog() {
+        NotificationDialog notificationDialog = new NotificationDialog();
+        notificationDialog.show(getSupportFragmentManager(), "notificationDialog");
+    }
+
+    //has value from dialog and activates notification
+    @Override
+    public void applyText(String val) {
+        entry1.setText(val);
+
+        alert = Double.parseDouble(val);
+
+        notification.setSmallIcon(R.mipmap.baseline_alarm_black_24dp);
+        notification.setContentTitle("PowerCoin");
+        notification.setTicker("");
+        notification.setWhen(System.currentTimeMillis());
+
+        Intent intent = new Intent(this, NotificationScreen.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        notification.setContentIntent(pendingIntent);
+
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        notification.setContentText("Bitcoin has reched value: " + alert + "!");
+        nm.notify(2323, notification.build());
+
+    }
+
+    public void setPrice() {
+        JsonRequest priceRequest = new JsonObjectRequest(
+                Request.Method.GET, priceUrl, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("GETPRICE_RESPONSE", response.toString());
+                        try {
+
+                            JSONObject data = response.getJSONObject("result");
+                            price = data.getDouble("price");
+                            currPrice.setText(Double.toString(price));
+
+                        } catch(JSONException e){
+                            Toast.makeText(NotificationScreen.this,
+                                    "Could not parse API response!",
+                                    Toast.LENGTH_LONG).show();
+                            Log.e("PARSER_ERROR", e.getMessage());
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(NotificationScreen.this,
+                                "Please try again!",
+                                Toast.LENGTH_LONG).show();
+                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                    }
+                }
+        );
+        System.out.println("HELLO : " + priceRequest.toString());
+        priceQueue.add(priceRequest);
+    }
+
+    //AutoUpdates Value
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+        mTimer = new Runnable() {
+            @Override
+            public void run() {
+
+                setPrice();
+                /*
+                if(alert != 0) {
+                    //send Notification and check
+                }
+                */
+                mHandler.postDelayed(this, 1000);
+
+            }
+        };
+        mHandler.postDelayed(mTimer, 1000);
+        Log.d("GRAPH", "Successfully updated automatically!");
+    }
+
+    @Override
+    public void onPause() {
+        mHandler.removeCallbacks(mTimer);
+        super.onPause();
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -73,32 +221,6 @@ public class NotificationScreen extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-    // ACTUAL NOTIFICATIONS
-
-    public void sendNotification(View view) {
-
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this);
-
-        //What happens after the user taps the notification
-        //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.androidauthority.com/"));
-        //PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-
-        //mBuilder.setContentIntent(pendingIntent);
-
-        mBuilder.setSmallIcon(R.drawable.notification_icon);
-        mBuilder.setContentTitle("PowerCoin");
-        mBuilder.setContentText("Bitcoin has reached the desired market value!");
-
-        NotificationManager mNotificationManager =
-
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        mNotificationManager.notify(001, mBuilder.build());
-    }
-
-    // ACTUAL NOTIFICATIONS END
 
     public void startTicker() {
         Intent intent = new Intent(this, TickerScreen.class);
