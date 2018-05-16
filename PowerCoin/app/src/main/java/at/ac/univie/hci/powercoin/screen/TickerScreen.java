@@ -134,6 +134,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         sinceQueue = Volley.newRequestQueue(this);
         //every hour for 24 hours
         sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=500&since=" + ((System.currentTimeMillis() / 1000L) - 86400);
+
         timeperiodView.setText("last 24 hours");
 
         loadGraph();
@@ -216,6 +217,8 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                                 sinceVal[i] = data.getJSONArray(i).getDouble(2);
                                 sinceTime[i] = data.getJSONArray(i).getLong(1) * 1000L;
                             }
+
+                            System.out.println("since Time = " + sinceTime[0]);
 
                             currencyView.setText(currency);
                             valueView.setText(dec.format(sinceVal[sinceVal.length - 1]));
