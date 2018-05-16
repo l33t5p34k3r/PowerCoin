@@ -25,7 +25,8 @@ public class HistoryScreen  extends AppCompatActivity {
     /**VIEW RELATED
      *
      */
-    private TextView historyView;
+    private TextView historyViewDate;
+    private TextView historyViewBTC;
 
 
     //--------------
@@ -41,9 +42,13 @@ public class HistoryScreen  extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        historyView = findViewById(R.id.textViewHist);
-        String historyText = intent.getStringExtra(PortfolioScreen.HISTORY_MESSAGE);
-        historyView.setText(historyText);
+        historyViewDate = findViewById(R.id.textViewDATE);
+        String historyTextDate = intent.getStringExtra(PortfolioScreen.HISTORY_DATE_MESSAGE);
+        historyViewDate.setText(historyTextDate);
+
+        historyViewBTC = findViewById(R.id.textViewBTC);
+        String historyTextBTC = intent.getStringExtra(PortfolioScreen.HISTORY_BTC_MESSAGE);
+        historyViewBTC.setText(historyTextBTC);
     }
 
     //---------------

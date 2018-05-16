@@ -47,13 +47,24 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/textViewHist"
+                    android:id="@+id/textViewDATE"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     tools:layout_editor_absoluteX="41dp"
                     tools:layout_editor_absoluteY="95dp" />
             </LinearLayout>
         </ScrollView>
+
+        <TextView
+            android:id="@+id/textViewBTC"
+            android:layout_width="228dp"
+            android:layout_height="234dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.897"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.884" />
 
     </android.support.constraint.ConstraintLayout>
 

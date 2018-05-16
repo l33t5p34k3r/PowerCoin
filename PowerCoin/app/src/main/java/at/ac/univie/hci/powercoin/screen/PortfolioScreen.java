@@ -65,7 +65,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      */
     private TextInputLayout bitcoinWrapper;
     double bitcoinAmount;
-    public static final String HISTORY_MESSAGE = "historyFile";
+    public static final String HISTORY_DATE_MESSAGE = "historyFileDate";
+    public static final String HISTORY_BTC_MESSAGE = "historyFileBTC";
 
     /**API RELATED
      *
@@ -95,7 +96,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
 
         //Portfolio Functions
-        File file = new File(PortfolioScreen.this.getFilesDir().getAbsolutePath(), "PortfolioHistory.txt");
+        File file = new File(PortfolioScreen.this.getFilesDir().getAbsolutePath(), "PortfolioHistoryBTC.txt");
         if(file.exists()){
             portfolioStart();
         }
@@ -175,7 +176,9 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                     return;
         }
 
-        writeToFile(date + " (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
+        //writeToFile(date + " (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
+        writeToFileDate(date +  "\n" , this);
+        writeToFileBTC(" (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
         Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
         bitcoinView.setText(bitcoinText);
@@ -202,7 +205,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             return;
         }
 
-        writeToFile(date + " (-" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
+        writeToFileDate(date  +  "\n", this);
+        writeToFileBTC(" (-" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
         Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
         bitcoinView.setText(bitcoinText);
@@ -229,7 +233,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      */
     public void historyClicked(){
         Intent result = new Intent(this, HistoryScreen.class);
-        result.putExtra(HISTORY_MESSAGE, readFromFile(this));
+        result.putExtra(HISTORY_DATE_MESSAGE, readFromFileDate(this));
+        result.putExtra(HISTORY_BTC_MESSAGE, readFromFileBTC(this));
         startActivity(result);
     }
 
@@ -237,7 +242,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * Clears History File
      */
     private void deleteHistory() {
-        this.deleteFile("PortfolioHistory.txt");
+        this.deleteFile("PortfolioHistoryDATE.txt");
+        this.deleteFile("PortfolioHistoryBTC.txt");
         bitcoinAmount = 0;
         bitcoinView.setText("0");
         Log.i("DELETE_BUTTON", "History was deleted!");
@@ -247,7 +253,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * Get the most recent amount of Bitcoin from wallet/transaction history
      */
     public void portfolioStart(){
-        String str = readFromFile(this);
+        String str = readFromFileBTC(this);
         String[] parts = str.split("[\\)]");
         String part2 = parts[parts.length-1];
 
@@ -285,9 +291,19 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * @param data
      * @param context
      */
-    private void writeToFile(String data,Context context) {
+    private void writeToFileDate(String data,Context context) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistory.txt",  Context.MODE_APPEND));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistoryDATE.txt",  Context.MODE_APPEND));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write fail: " + e.toString());
+        }
+    }
+    private void writeToFileBTC(String data,Context context) {
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistoryBTC.txt",  Context.MODE_APPEND));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
         }
@@ -301,11 +317,40 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * @param context
      * @return String with all information of the wallet
      */
-    private String readFromFile(Context context) {
+    private String readFromFileDate(Context context) {
         String ret = "";
 
         try {
-            InputStream inputStream = context.openFileInput("PortfolioHistory.txt");
+            InputStream inputStream = context.openFileInput("PortfolioHistoryDATE.txt");
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString).append("\n");
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        }
+        catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
+
+        return ret;
+    }
+
+    private String readFromFileBTC(Context context) {
+        String ret = "";
+
+        try {
+            InputStream inputStream = context.openFileInput("PortfolioHistoryBTC.txt");
 
             if ( inputStream != null ) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
