@@ -10,11 +10,9 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,61 +32,66 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
-import at.ac.univie.hci.powercoin.functionality.Graph;
 import at.ac.univie.hci.powercoin.R;
+import at.ac.univie.hci.powercoin.functionality.Graph;
 
 
 public class TickerScreen extends AppCompatActivity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
-    /**HAMBURGER-MENU RELATED
-     *mDrawerLayout: Links to Layout for Hamburger Menu
-     *mToggle: makes the Hamburger Button clickable
-     */
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mToggle;
-
-    /**API RELATED
-     * upQueue: creates queue for API
-     * upUrl: saves API-Url
-     * upVal: saves latest price
-     * upTime: saves latest time
-     *
-     * sinceQueue: creates queue for API
-     * sinceUrl: saves API-Url
-     * sinceVal: saves array of prices since now
-     * sinceTime: saves array of times for the values
-     */
-    private RequestQueue upQueue;
-    private String upUrl;
-    private double upVal;
-    private long upTime;
-
-    private RequestQueue sinceQueue;
-    private String sinceUrl;
-    private double [] sinceVal;
-    private long [] sinceTime;
-    private double firstVal;
-
-    /**GRAPH RELATED
+    /**
+     * GRAPH RELATED
      * mHandler: https://developer.android.com/reference/android/os/Handler
      * mTimer: https://developer.android.com/reference/java/lang/Runnable
      * graph: creates Graph to fill
      * currency: displays different currencies
      */
     private final Handler mHandler = new Handler();
+    private ActionBarDrawerToggle mToggle;
+    /**
+     * HAMBURGER-MENU RELATED
+     * mDrawerLayout: Links to Layout for Hamburger Menu
+     * mToggle: makes the Hamburger Button clickable
+     */
+    private DrawerLayout mDrawerLayout;
+    private String upUrl;
+    private double upVal;
+    private long upTime;
+
+    private RequestQueue sinceQueue;
+    private String sinceUrl;
+    /**
+     * API RELATED
+     * upQueue: creates queue for API
+     * upUrl: saves API-Url
+     * upVal: saves latest price
+     * upTime: saves latest time
+     * <p>
+     * sinceQueue: creates queue for API
+     * sinceUrl: saves API-Url
+     * sinceVal: saves array of prices since now
+     * sinceTime: saves array of times for the values
+     */
+    private RequestQueue upQueue;
+    private double[] sinceVal;
+    private double firstVal;
+    private long[] sinceTime;
     private Runnable mTimer;
     private Graph graph;
     private String currency = " Dollar ";
     private String currSymbol = " $ ";
+    private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
 
-    /**TEXT RELATED
+
+    /**
+     * TEXT RELATED
      * currencyView: displays the currency in text format
      * valueView: displays the current Value of Bitcoin
      * changeView: displays the difference in the last time period
      * timeperiodView: displays the time period
-     *
+     * <p>
      * dec: creates format for values in changeView
      */
     private TextView currencyView;
@@ -98,7 +101,8 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     private static DecimalFormat dec = new DecimalFormat(".##");
 
-    /**SWIPE-TO-UPDATE RELATED
+    /**
+     * SWIPE-TO-UPDATE RELATED
      * SwipeRefreshLayout: creates binds to SwipeRefreshLayout in activity_ticker_screen.xml
      */
     private SwipeRefreshLayout swipeUpdate;
@@ -129,7 +133,8 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
         sinceQueue = Volley.newRequestQueue(this);
         //every hour for 24 hours
-        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=500&since=" + (System.currentTimeMillis() / 1000L - 86400);
+        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=500&since=" + ((System.currentTimeMillis() / 1000L) - 86400);
+        System.out.println("the URL is: " + sinceUrl);
         timeperiodView.setText("last 24 hours");
 
         loadGraph();
@@ -138,8 +143,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        switch(view.getId())
-        {
+        switch (view.getId()) {
             case R.id.graphManualUpdate:
 
                 Log.d("GRAPH", "Update Button was clicked!");
@@ -161,15 +165,27 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      * Initializes Graph
      */
     private void createGraph() {
+
         GraphView graphView = findViewById(R.id.graph);
+
+        sdf.setTimeZone(TimeZone.getDefault());
+
         graph = new Graph(this);
         graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
 
         graphView.getViewport().setScalable(true);
 
-        NumberFormat currency = NumberFormat.getCurrencyInstance();
-        NumberFormat time = NumberFormat.getInstance();
-        graphView.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter(time, currency));
+        graphView.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
+            @Override
+            public String formatLabel(double value, boolean isValueX) {
+                if (isValueX) {
+                    return sdf.format(value);
+                }
+                return super.formatLabel(value, isValueX) + currSymbol;
+            }
+        });
+
+        graphView.getGridLabelRenderer().setNumHorizontalLabels(4);
 
         swipeUpdate = findViewById(R.id.swiperefresh);
         swipeUpdate.setOnRefreshListener(this);
@@ -182,7 +198,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     /**
      * Fills Graph with past information taken from the API
      */
-    private void loadGraph () {
+    private void loadGraph() {
         JsonRequest sinceReq = new JsonObjectRequest(
 
                 Request.Method.GET, sinceUrl, null,
@@ -197,10 +213,12 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                             sinceVal = new double[data.length()];
                             sinceTime = new long[data.length()];
 
-                            for(int i = 0; i < sinceVal.length; i++) {
+                            for (int i = 0; i < sinceVal.length; i++) {
                                 sinceVal[i] = data.getJSONArray(i).getDouble(2);
                                 sinceTime[i] = data.getJSONArray(i).getLong(1) * 1000L;
                             }
+
+                            System.out.println("since Time = " + sinceTime[0]);
 
                             currencyView.setText(currency);
                             valueView.setText(dec.format(sinceVal[sinceVal.length - 1]));
@@ -226,7 +244,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
                             createGraph();
 
-                        } catch(JSONException e){
+                        } catch (JSONException e) {
                             Toast.makeText(TickerScreen.this,
                                     "Could not parse API response for Creation!",
                                     Toast.LENGTH_LONG).show();
@@ -240,7 +258,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                         Toast.makeText(TickerScreen.this,
                                 "API is not responding!",
                                 Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
                 });
         sinceQueue.add(sinceReq);
@@ -250,7 +268,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     /**
      * Updates Graph with the latest value from the API
      */
-    private void updateGraph () {
+    private void updateGraph() {
         JsonRequest upRequest = new JsonObjectRequest(
                 Request.Method.GET, upUrl, null,
                 new Response.Listener<JSONObject>() {
@@ -284,7 +302,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
                             graph.updateGraph(upVal, upTime);
 
-                        } catch(JSONException e){
+                        } catch (JSONException e) {
                             Toast.makeText(TickerScreen.this,
                                     "Could not parse API response!",
                                     Toast.LENGTH_LONG).show();
@@ -298,7 +316,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                         Toast.makeText(TickerScreen.this,
                                 "Please try again!",
                                 Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
                 }
         );
@@ -361,7 +379,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
     private void menuInitialization() {
         mDrawerLayout = findViewById(R.id.drawerLayout);
-        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
@@ -374,19 +392,19 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
 
-                    case(R.id.nav_ticker):
+                    case (R.id.nav_ticker):
                         startTicker();
                         break;
-                    case(R.id.nav_calc):
+                    case (R.id.nav_calc):
                         startCalculator();
                         break;
-                    case(R.id.nav_portfolio):
+                    case (R.id.nav_portfolio):
                         startPortfolio();
                         break;
-                    case(R.id.nav_notification):
+                    case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case(R.id.nav_settings):
+                    case (R.id.nav_settings):
                         startSettings();
                         break;
                 }
@@ -407,6 +425,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 */
+
     /**
      * Handle action bar item clicks here. The action bar will
      * automatically handle clicks on the Home/Up button, so long
@@ -416,7 +435,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
 
         //enables Hamburger-Menu to be opened by pressing the button
-        if(mToggle.onOptionsItemSelected(item)) {
+        if (mToggle.onOptionsItemSelected(item)) {
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -434,19 +453,23 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         Intent intent = new Intent(this, TickerScreen.class);
         startActivity(intent);
     }
+
     public void startCalculator() {
         Intent intent = new Intent(this, CalculatorScreen.class);
         startActivity(intent);
     }
+
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
         startActivity(intent);
     }
+
     public void startSettings() {
         Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
     }
-    public void startPortfolio(){
+
+    public void startPortfolio() {
         Intent intent = new Intent(this, PortfolioScreen.class);
         startActivity(intent);
     }

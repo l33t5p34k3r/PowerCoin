@@ -1,13 +1,13 @@
 package at.ac.univie.hci.powercoin.screen;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,15 +34,16 @@ import static at.ac.univie.hci.powercoin.screen.PortfolioScreen.isDouble;
 
 public class CalculatorScreen extends AppCompatActivity implements View.OnClickListener {
 
-    /**HAMBURGER-MENU RELATED
-     *mDrawerLayout: Links to Layout for Hamburger Menu
-     *mToggle: makes the Hamburger Button clickable
+    /**
+     * HAMBURGER-MENU RELATED
+     * mDrawerLayout: Links to Layout for Hamburger Menu
+     * mToggle: makes the Hamburger Button clickable
      */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
-    /**API RELATED
-     *
+    /**
+     * API RELATED
      */
     private String upUrlDollar;
     private String upUrlEuro;
@@ -51,8 +52,8 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
     private RequestQueue requestQueueDollar;
     private RequestQueue requestQueueEuro;
 
-    /**CALCULATOR RELATED
-     *
+    /**
+     * CALCULATOR RELATED
      */
     private TextInputLayout bitcoinWrapper;
     private TextInputLayout bitcoinWrapper2;
@@ -82,10 +83,28 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
 
     }
 
+    /**
+     * Rounding Function
+     *
+     * @param value  = number that should be rounded
+     * @param places = amount of decimals to be rounded on
+     * @return rounded number
+     */
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bigD = new BigDecimal(value);
+        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
+        return bigD.doubleValue();
+    }
+
+    //----------
+    //Calculator
+    //----------
+
     @Override
     public void onClick(View view) {
-        switch(view.getId())
-        {
+        switch (view.getId()) {
             case R.id.buttonEuro:
                 Log.d("EURO_BUTTON", "Button was clicked!");
                 euroClicked();
@@ -99,10 +118,6 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    //----------
-    //Calculator
-    //----------
-
     /**
      * When "EURO" Button is clicked:
      * if there is a value in the BTC field, then it is converted to EUR
@@ -111,15 +126,14 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
     private void euroClicked() {
         Intent intent = getIntent();
         double bitcoinVal = 0;
-        if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
+        if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValEuro));
             bitcoinAmount = bitcoinVal * upValEuro;
             bitcoinWrapper2.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper.getEditText().setText("");
 
-        }
-        else if( isDouble( bitcoinWrapper2.getEditText().getText().toString())){
+        } else if (isDouble(bitcoinWrapper2.getEditText().getText().toString())) {
             bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValEuro));
             bitcoinAmount = bitcoinVal / upValEuro;
@@ -137,14 +151,13 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
     private void dollarClicked() {
         Intent intent = getIntent();
         double bitcoinVal = 0;
-        if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
+        if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValDollar));
             bitcoinAmount = bitcoinVal * upValDollar;
             bitcoinWrapper2.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper.getEditText().setText("");
-        }
-        else if( isDouble( bitcoinWrapper2.getEditText().getText().toString())){
+        } else if (isDouble(bitcoinWrapper2.getEditText().getText().toString())) {
             bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
             Log.d("VAL", Double.toString(upValDollar));
             bitcoinAmount = bitcoinVal / upValDollar;
@@ -152,20 +165,6 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
             bitcoinWrapper2.getEditText().setText("");
         }
 
-    }
-
-    /**
-     * Rounding Function
-     * @param value = number that should be rounded
-     * @param places = amount of decimals to be rounded on
-     * @return rounded number
-     */
-    public static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
-
-        BigDecimal bigD = new BigDecimal(value);
-        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
-        return bigD.doubleValue();
     }
 
     //---------------
@@ -177,7 +176,7 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
      */
     private void menuInitialization() {
         mDrawerLayout = findViewById(R.id.drawerLayout);
-        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
@@ -190,19 +189,19 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
 
-                    case(R.id.nav_ticker):
+                    case (R.id.nav_ticker):
                         startTicker();
                         break;
-                    case(R.id.nav_calc):
+                    case (R.id.nav_calc):
                         startCalculator();
                         break;
-                    case(R.id.nav_portfolio):
+                    case (R.id.nav_portfolio):
                         startPortfolio();
                         break;
-                    case(R.id.nav_notification):
+                    case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case(R.id.nav_settings):
+                    case (R.id.nav_settings):
                         startSettings();
                         break;
                 }
@@ -216,7 +215,7 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
      */
     private void apiFunction() {
         upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
-        requestQueueDollar = Volley.newRequestQueue( this);
+        requestQueueDollar = Volley.newRequestQueue(this);
 
         JsonRequest dollarRequest = new JsonObjectRequest(
                 Request.Method.GET, upUrlDollar, null,
@@ -233,13 +232,13 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
                         Toast.makeText(CalculatorScreen.this,
                                 "Please try again!",
                                 Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
                 });
         requestQueueDollar.add(dollarRequest);
 
         upUrlEuro = "https://api.cryptowat.ch/markets/kraken/btceur/price";
-        requestQueueEuro = Volley.newRequestQueue( this);
+        requestQueueEuro = Volley.newRequestQueue(this);
 
         JsonRequest eurRequest = new JsonObjectRequest(
                 Request.Method.GET, upUrlEuro, null,
@@ -256,7 +255,7 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
                         Toast.makeText(CalculatorScreen.this,
                                 "Please try again!",
                                 Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
                 });
         requestQueueEuro.add(eurRequest);
@@ -264,17 +263,18 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
 
     /**
      * This function gets the API Response and gives back the newest BTC price
+     *
      * @param apiResponse
      * @return upVal - the newest bitcoin value
      */
-    private double UpProcessResult (JSONObject apiResponse) {
+    private double UpProcessResult(JSONObject apiResponse) {
         try {
 
             JSONObject data = apiResponse.getJSONObject("result");
             double upVal = data.getDouble("price");
             return upVal;
 
-        } catch(JSONException e){
+        } catch (JSONException e) {
             Toast.makeText(CalculatorScreen.this,
                     "Could not parse API response!",
                     Toast.LENGTH_LONG).show();
@@ -287,7 +287,7 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
      * Menu-Related Functions
      */
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(mToggle.onOptionsItemSelected(item)) {
+        if (mToggle.onOptionsItemSelected(item)) {
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -297,18 +297,22 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
         Intent intent = new Intent(this, TickerScreen.class);
         startActivity(intent);
     }
+
     public void startCalculator() {
         Intent intent = new Intent(this, CalculatorScreen.class);
         startActivity(intent);
     }
-    public void startPortfolio(){
+
+    public void startPortfolio() {
         Intent intent = new Intent(this, PortfolioScreen.class);
         startActivity(intent);
     }
+
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
         startActivity(intent);
     }
+
     public void startSettings() {
         Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);

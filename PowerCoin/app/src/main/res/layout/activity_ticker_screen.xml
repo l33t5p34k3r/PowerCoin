@@ -21,15 +21,14 @@
                 android:id="@+id/graphManualUpdate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="44dp"
+                android:layout_marginTop="8dp"
                 android:text="Update"
                 app:layout_anchorGravity="left|bottom"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/graph"/>
+                app:layout_constraintTop_toBottomOf="@+id/graph" />
 
             <com.jjoe64.graphview.GraphView
                 android:id="@+id/graph"
@@ -48,16 +47,14 @@
                 android:id="@+id/currency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="56dp"
+                android:layout_marginBottom="40dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
                 android:text="Currency"
                 app:layout_constraintBottom_toTopOf="@+id/graph"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toEndOf="@+id/value"
-                app:layout_constraintVertical_bias="0.4" />
+                app:layout_constraintHorizontal_bias="0.031"
+                app:layout_constraintStart_toEndOf="@+id/value" />
 
             <TextView
                 android:id="@+id/value"
@@ -79,31 +76,26 @@
                 android:id="@+id/change"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="48dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="48dp"
                 android:text="change"
-                app:layout_constraintBottom_toTopOf="@+id/graph"
                 app:layout_constraintEnd_toStartOf="@+id/value"
-                app:layout_constraintHorizontal_bias="0.868"
+                app:layout_constraintHorizontal_bias="0.842"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintVertical_bias="0.4" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/timeperiod"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
                 android:text="timeperiod"
-                app:layout_constraintBottom_toTopOf="@+id/graph"
                 app:layout_constraintEnd_toStartOf="@+id/value"
-                app:layout_constraintHorizontal_bias="0.962"
+                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintVertical_bias="0.692" />
+                app:layout_constraintTop_toBottomOf="@+id/change" />
         </android.support.constraint.ConstraintLayout>
 
 

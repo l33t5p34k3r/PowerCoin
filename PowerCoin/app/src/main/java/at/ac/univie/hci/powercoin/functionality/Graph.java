@@ -11,6 +11,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,10 +29,7 @@ public class Graph {
      * now: value that saves the current time
      * context: used for Toast messages on values
      */
-    private double graphLastXValue = -4000000.0;
-    private double tmpTime;
-    private double tmpVal;
-    private long now;
+    private double graphLastXValue = 0;
     private Context context;
 
     /**
@@ -42,6 +40,7 @@ public class Graph {
         this.context = context;
     }
 
+
     /**
      * Initializes graph
      * @param oldVal array of all the value-entries
@@ -51,12 +50,14 @@ public class Graph {
     public LineGraphSeries<DataPoint> newGraph(double [] oldVal, long [] oldTime){
         Log.i("GRAPH", "New Graph being created");
 
-        now  = System.currentTimeMillis();
         Long [] time = new Long[oldTime.length];
+
 
         for (int i = 0; i < oldVal.length; i++) {
             time[i] =  oldTime[i];
         }
+
+        System.out.println("time is: " + time[0]);
 
         Set<Long> tmp = new HashSet<>();
 
@@ -72,12 +73,11 @@ public class Graph {
 
         for (int i = 0; i < oldVal.length; i++) {
 
-            tmpTime  = oldTime[i] - now;
-            tmpTime /= 3600;
+            Date date = new Date(oldTime[i]);
 
-            if (tmpTime > graphLastXValue) {
-                newGraph[count] = new DataPoint(tmpTime, oldVal[i]);
-                graphLastXValue = tmpTime;
+            if (date.getTime() > graphLastXValue) {
+                newGraph[count] = new DataPoint(date, oldVal[i]);
+                graphLastXValue = date.getTime();
                 count++;
             }
         }
@@ -111,15 +111,11 @@ public class Graph {
      * @param newTime
      */
     public void updateGraph(double newVal, long newTime){
-        //needs to be changed for some reason, keep it!
-        tmpVal = newVal;
-        tmpVal /= 1000;
 
-        tmpTime = newTime - now;
-        tmpTime /= 3600000;
-        if (tmpTime > graphLastXValue) {
-            graphLastXValue = tmpTime;
-            mSeries.appendData(new DataPoint(graphLastXValue, newVal), true, Integer.MAX_VALUE);
+        Date date = new Date(newTime);
+        if (date.getTime() > graphLastXValue) {
+            graphLastXValue = date.getTime();
+            mSeries.appendData(new DataPoint(graphLastXValue, newVal), false, Integer.MAX_VALUE);
         }
     }
 }

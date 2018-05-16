@@ -3,6 +3,7 @@ package at.ac.univie.hci.powercoin.screen;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -11,7 +12,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,35 +34,30 @@ import at.ac.univie.hci.powercoin.functionality.NotificationDialog;
 
 public class NotificationScreen extends AppCompatActivity implements NotificationDialog.NotificationDialogListener {
 
-    /**HAMBURGER-MENU RELATED
-     *mDrawerLayout: Links to Layout for Hamburger Menu
-     *mToggle: makes the Hamburger Button clickable
-     */
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mToggle;
-
-
-    /**API RELATED
-     *
+    /**
+     * API RELATED
      */
     private final Handler mHandler = new Handler();
+    private ActionBarDrawerToggle mToggle;
+    /**
+     * NOTIFICATION RELATED
+     */
+    NotificationCompat.Builder notification;
     private Runnable mTimer;
     private String priceUrl = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
     private double price;
     private double alert = 0;
     private RequestQueue priceQueue;
-
-    /**NOTIFICATION RELATED
-     *
-     *
-     */
-    NotificationCompat.Builder notification;
-
-
-    /**TEXT RELATED
-     *
+    /**
+     * TEXT RELATED
      */
     TextView currPrice;
+    /**
+     * HAMBURGER-MENU RELATED
+     * mDrawerLayout: Links to Layout for Hamburger Menu
+     * mToggle: makes the Hamburger Button clickable
+     */
+    private DrawerLayout mDrawerLayout;
     TextView entry1;
 
 
@@ -169,7 +164,7 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
                             price = data.getDouble("price");
                             currPrice.setText(Double.toString(price));
 
-                        } catch(JSONException e){
+                        } catch (JSONException e) {
                             Toast.makeText(NotificationScreen.this,
                                     "Could not parse API response!",
                                     Toast.LENGTH_LONG).show();
@@ -183,7 +178,7 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
                         Toast.makeText(NotificationScreen.this,
                                 "Please try again!",
                                 Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
                 }
         );
@@ -224,7 +219,7 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
     public boolean onOptionsItemSelected(MenuItem item) {
 
         //enables Hamburger-Menu to be opened by pressing the button
-        if(mToggle.onOptionsItemSelected(item)) {
+        if (mToggle.onOptionsItemSelected(item)) {
             return true;
         }
 
@@ -235,18 +230,22 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
         Intent intent = new Intent(this, TickerScreen.class);
         startActivity(intent);
     }
+
     public void startCalculator() {
         Intent intent = new Intent(this, CalculatorScreen.class);
         startActivity(intent);
     }
-    public void startPortfolio(){
+
+    public void startPortfolio() {
         Intent intent = new Intent(this, PortfolioScreen.class);
         startActivity(intent);
     }
+
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
         startActivity(intent);
     }
+
     public void startSettings() {
         Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);

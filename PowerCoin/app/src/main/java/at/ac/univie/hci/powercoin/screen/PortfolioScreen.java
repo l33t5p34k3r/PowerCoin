@@ -47,29 +47,30 @@ import at.ac.univie.hci.powercoin.R;
 
 public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener {
 
-    /**HAMBURGER-MENU RELATED
-     *mDrawerLayout: Links to Layout for Hamburger Menu
-     *mToggle: makes the Hamburger Button clickable
+    /**
+     * HAMBURGER-MENU RELATED
+     * mDrawerLayout: Links to Layout for Hamburger Menu
+     * mToggle: makes the Hamburger Button clickable
      */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
 
-    /**CONVERSION RELATED
-     *
+    /**
+     * CONVERSION RELATED
      */
     private TextView bitcoinView;
     private TextView euroDollarView;
 
-    /**HISTORY RELATED
-     *
+    /**
+     * HISTORY RELATED
      */
     private TextInputLayout bitcoinWrapper;
     double bitcoinAmount;
     public static final String HISTORY_DATE_MESSAGE = "historyFileDate";
     public static final String HISTORY_BTC_MESSAGE = "historyFileBTC";
 
-    /**API RELATED
-     *
+    /**
+     * API RELATED
      */
     private String upUrlDollar;
     private String upUrlEuro;
@@ -82,8 +83,43 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     //Main Functions
     //--------------
 
+    /**
+     * Rounding Function
+     *
+     * @param value  = number that should be rounded
+     * @param places = amount of decimals to be rounded on
+     * @return rounded number
+     */
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bigD = new BigDecimal(value);
+        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
+        return bigD.doubleValue();
+    }
+
+    /**
+     * Checks if a String is Double
+     *
+     * @param str
+     * @return true if String is Double || false if String is not Double
+     */
+    public static boolean isDouble(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    //----------
+    //Conversion
+    //----------
+
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState){
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_portfolio_screen);
         bitcoinView = findViewById(R.id.valNum);
@@ -97,11 +133,11 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         //Portfolio Functions
         File file = new File(PortfolioScreen.this.getFilesDir().getAbsolutePath(), "PortfolioHistoryBTC.txt");
-        if(file.exists()){
+        if (file.exists()) {
             portfolioStart();
         }
         String bitcoinText = "0";
-        if(bitcoinAmount != 0){
+        if (bitcoinAmount != 0) {
             bitcoinText = Double.toString(bitcoinAmount);
             bitcoinView.setText(bitcoinText);
         } else bitcoinView.setText(bitcoinText);
@@ -125,8 +161,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onClick(View view) {
-        switch(view.getId())
-        {
+        switch (view.getId()) {
             case R.id.buttonAdd:
                 Log.d("ADD_BUTTON", "Button was clicked!");
                 addClicked();
@@ -149,79 +184,33 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         newConversion();
     }
 
-
-
-    //----------
-    //Conversion
-    //----------
-
     /**
      * Adds set amount of Bitcoin to wallet
      */
-    public void addClicked(){
+    public void addClicked() {
         String date;
 
-        if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
+        if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
             bitcoinAmount += Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
-            if(bitcoinAmount < 0){
+            if (bitcoinAmount < 0) {
                 bitcoinAmount = 0;
                 Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
             }
             date = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
-        }
-        else{
-            Toast.makeText(PortfolioScreen.this,
-                    "Please enter a number!",
-                    Toast.LENGTH_LONG).show();
-                    return;
-        }
-
-        //writeToFile(date + " (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
-        writeToFileDate(date +  "\n" , this);
-        writeToFileBTC(" (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
-        Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
-        String bitcoinText = Double.toString(bitcoinAmount);
-        bitcoinView.setText(bitcoinText);
-    }
-
-    /**
-     * Removes set amount of Bitcoin from wallet.
-     */
-    public void removeClicked(){
-        String date;
-
-        if( isDouble( bitcoinWrapper.getEditText().getText().toString())){
-            bitcoinAmount -= Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
-            if(bitcoinAmount < 0){
-                bitcoinAmount = 0;
-                Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
-            }
-            date = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
-        }
-        else{
+        } else {
             Toast.makeText(PortfolioScreen.this,
                     "Please enter a number!",
                     Toast.LENGTH_LONG).show();
             return;
         }
 
-        writeToFileDate(date  +  "\n", this);
-        writeToFileBTC(" (-" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
-        Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
+        //writeToFile(date + " (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
+        writeToFileDate(date + "\n", this);
+        writeToFileBTC(" (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount + "\n", this);
+        Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
         bitcoinView.setText(bitcoinText);
     }
-
-    public void newConversion(){
-        double valueEuro;
-        double valueDollar;
-        valueEuro = bitcoinAmount*upValEuro;
-        valueDollar = bitcoinAmount*upValDollar;
-        String textEurDol;
-        textEurDol = " = " + round(valueEuro, 2) + " Euro / " + round(valueDollar, 2) + " Dollar";
-        euroDollarView.setText(textEurDol);
-    }
-
 
 
     //-------
@@ -229,13 +218,30 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     //-------
 
     /**
-     * Goes to History Screen and shows former transactions of bitcoin
+     * Removes set amount of Bitcoin from wallet.
      */
-    public void historyClicked(){
-        Intent result = new Intent(this, HistoryScreen.class);
-        result.putExtra(HISTORY_DATE_MESSAGE, readFromFileDate(this));
-        result.putExtra(HISTORY_BTC_MESSAGE, readFromFileBTC(this));
-        startActivity(result);
+    public void removeClicked() {
+        String date;
+
+        if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
+            bitcoinAmount -= Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
+            if (bitcoinAmount < 0) {
+                bitcoinAmount = 0;
+                Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
+            }
+            date = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
+        } else {
+            Toast.makeText(PortfolioScreen.this,
+                    "Please enter a number!",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        writeToFileDate(date + "\n", this);
+        writeToFileBTC(" (-" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount + "\n", this);
+        Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
+        String bitcoinText = Double.toString(bitcoinAmount);
+        bitcoinView.setText(bitcoinText);
     }
 
     /**
@@ -249,23 +255,14 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         Log.i("DELETE_BUTTON", "History was deleted!");
     }
 
-    /**
-     * Get the most recent amount of Bitcoin from wallet/transaction history
-     */
-    public void portfolioStart(){
-        String str = readFromFileBTC(this);
-        String[] parts = str.split("[\\)]");
-        String part2 = parts[parts.length-1];
-
-        Pattern p = Pattern.compile("(\\d+(?:\\.\\d+))");
-        Matcher m = p.matcher(part2);
-        double d = 0;
-        while(m.find()) {
-            d = Double.parseDouble(m.group(1));
-            System.out.println(d);
-        }
-        bitcoinAmount = d;
-        Log.d("FILE", "CURRENT BITCOIN DEBUG: " + bitcoinAmount);
+    public void newConversion() {
+        double valueEuro;
+        double valueDollar;
+        valueEuro = bitcoinAmount * upValEuro;
+        valueDollar = bitcoinAmount * upValDollar;
+        String textEurDol;
+        textEurDol = " = " + round(valueEuro, 2) + " Euro / " + round(valueDollar, 2) + " Dollar";
+        euroDollarView.setText(textEurDol);
     }
 
     //---------------
@@ -273,47 +270,63 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     //---------------
 
     /**
-     * Rounding Function
-     * @param value = number that should be rounded
-     * @param places = amount of decimals to be rounded on
-     * @return rounded number
+     * Goes to History Screen and shows former transactions of bitcoin
      */
-    public static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
+    public void historyClicked() {
+        Intent result = new Intent(this, HistoryScreen.class);
+        result.putExtra(HISTORY_DATE_MESSAGE, readFromFileDate(this));
+        result.putExtra(HISTORY_BTC_MESSAGE, readFromFileBTC(this));
+        startActivity(result);
+    }
 
-        BigDecimal bigD = new BigDecimal(value);
-        bigD = bigD.setScale(places, RoundingMode.HALF_UP);
-        return bigD.doubleValue();
+    /**
+     * Get the most recent amount of Bitcoin from wallet/transaction history
+     */
+    public void portfolioStart() {
+        String str = readFromFileBTC(this);
+        String[] parts = str.split("[\\)]");
+        String part2 = parts[parts.length - 1];
+
+        Pattern p = Pattern.compile("(\\d+(?:\\.\\d+))");
+        Matcher m = p.matcher(part2);
+        double d = 0;
+        while (m.find()) {
+            d = Double.parseDouble(m.group(1));
+            System.out.println(d);
+        }
+        bitcoinAmount = d;
+        Log.d("FILE", "CURRENT BITCOIN DEBUG: " + bitcoinAmount);
     }
 
     /**
      * Writes Bitcoin and other data (such as date) to a file (wallet)
+     *
      * @param data
      * @param context
      */
-    private void writeToFileDate(String data,Context context) {
+    private void writeToFileDate(String data, Context context) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistoryDATE.txt",  Context.MODE_APPEND));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistoryDATE.txt", Context.MODE_APPEND));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.e("Exception", "File write fail: " + e.toString());
         }
     }
-    private void writeToFileBTC(String data,Context context) {
+
+    private void writeToFileBTC(String data, Context context) {
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistoryBTC.txt",  Context.MODE_APPEND));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput("PortfolioHistoryBTC.txt", Context.MODE_APPEND));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.e("Exception", "File write fail: " + e.toString());
         }
     }
 
     /**
      * Reads the file (wallet)
+     *
      * @param context
      * @return String with all information of the wallet
      */
@@ -323,21 +336,20 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         try {
             InputStream inputStream = context.openFileInput("PortfolioHistoryDATE.txt");
 
-            if ( inputStream != null ) {
+            if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String receiveString = "";
                 StringBuilder stringBuilder = new StringBuilder();
 
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                while ((receiveString = bufferedReader.readLine()) != null) {
                     stringBuilder.append(receiveString).append("\n");
                 }
 
                 inputStream.close();
                 ret = stringBuilder.toString();
             }
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             Log.e("login activity", "File not found: " + e.toString());
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());
@@ -352,21 +364,20 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         try {
             InputStream inputStream = context.openFileInput("PortfolioHistoryBTC.txt");
 
-            if ( inputStream != null ) {
+            if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String receiveString = "";
                 StringBuilder stringBuilder = new StringBuilder();
 
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                while ((receiveString = bufferedReader.readLine()) != null) {
                     stringBuilder.append(receiveString).append("\n");
                 }
 
                 inputStream.close();
                 ret = stringBuilder.toString();
             }
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             Log.e("login activity", "File not found: " + e.toString());
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());
@@ -376,25 +387,11 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * Checks if a String is Double
-     * @param str
-     * @return true if String is Double || false if String is not Double
-     */
-    public static boolean isDouble( String str ) {
-        try {
-            Double.parseDouble(str);
-            return true;}
-        catch(Exception e ){
-            return false;
-        }
-    }
-
-    /**
      * This function calls the API and gets the newest bitcoin value in USD and EUR
      */
-    public void apiFunction(){
+    public void apiFunction() {
         upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
-        requestQueueDollar = Volley.newRequestQueue( this);
+        requestQueueDollar = Volley.newRequestQueue(this);
 
         JsonRequest dollarRequest = new JsonObjectRequest(
                 Request.Method.GET, upUrlDollar, null,
@@ -411,13 +408,13 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                         Toast.makeText(PortfolioScreen.this,
                                 "Please try again!",
                                 Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
                 });
         requestQueueDollar.add(dollarRequest);
 
         upUrlEuro = "https://api.cryptowat.ch/markets/kraken/btceur/price";
-        requestQueueEuro = Volley.newRequestQueue( this);
+        requestQueueEuro = Volley.newRequestQueue(this);
 
         JsonRequest eurRequest = new JsonObjectRequest(
                 Request.Method.GET, upUrlEuro, null,
@@ -434,7 +431,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                         Toast.makeText(PortfolioScreen.this,
                                 "Please try again!",
                                 Toast.LENGTH_LONG).show();
-                        if(error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
+                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
                 });
         requestQueueEuro.add(eurRequest);
@@ -442,17 +439,18 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
     /**
      * This function gets the API Response and gives back the newest BTC price
+     *
      * @param apiResponse
      * @return upVal - the newest bitcoin value
      */
-    private double UpProcessResult (JSONObject apiResponse) {
+    private double UpProcessResult(JSONObject apiResponse) {
         try {
 
             JSONObject data = apiResponse.getJSONObject("result");
             double upVal = data.getDouble("price");
             return upVal;
 
-        } catch(JSONException e){
+        } catch (JSONException e) {
             Toast.makeText(PortfolioScreen.this,
                     "Could not parse API response!",
                     Toast.LENGTH_LONG).show();
@@ -466,7 +464,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      */
     private void menuInitialization() {
         mDrawerLayout = findViewById(R.id.drawerLayout);
-        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close );
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
@@ -479,19 +477,19 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
 
-                    case(R.id.nav_ticker):
+                    case (R.id.nav_ticker):
                         startTicker();
                         break;
-                    case(R.id.nav_calc):
+                    case (R.id.nav_calc):
                         startCalculator();
                         break;
-                    case(R.id.nav_portfolio):
+                    case (R.id.nav_portfolio):
                         startPortfolio();
                         break;
-                    case(R.id.nav_notification):
+                    case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case(R.id.nav_settings):
+                    case (R.id.nav_settings):
                         startSettings();
                         break;
                 }
@@ -504,7 +502,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * Menu-Related Functions
      */
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(mToggle.onOptionsItemSelected(item)) {
+        if (mToggle.onOptionsItemSelected(item)) {
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -514,18 +512,22 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         Intent intent = new Intent(this, TickerScreen.class);
         startActivity(intent);
     }
+
     public void startCalculator() {
         Intent intent = new Intent(this, CalculatorScreen.class);
         startActivity(intent);
     }
-    public void startPortfolio(){
+
+    public void startPortfolio() {
         Intent intent = new Intent(this, PortfolioScreen.class);
         startActivity(intent);
     }
+
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
         startActivity(intent);
     }
+
     public void startSettings() {
         Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
