@@ -57,6 +57,8 @@ public class Graph {
             time[i] =  oldTime[i];
         }
 
+        System.out.println("time is: " + time[0]);
+
         Set<Long> tmp = new HashSet<>();
 
         for (int i = 0; i < time.length; i++) {
