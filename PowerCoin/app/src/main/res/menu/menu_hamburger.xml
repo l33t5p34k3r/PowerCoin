@@ -3,27 +3,27 @@
 
     <item
         android:id="@+id/nav_ticker"
-        android:icon="@mipmap/baseline_timeline_black_24dp"
+        android:icon="@mipmap/timeline"
         android:title="Ticker" />
 
     <item
         android:id="@+id/nav_calc"
-        android:icon="@mipmap/baseline_swap_horiz_black_24dp"
+        android:icon="@mipmap/swap"
         android:title="Calculator" />
 
     <item
         android:id="@+id/nav_portfolio"
-        android:icon="@mipmap/baseline_account_balance_wallet_black_24dp"
+        android:icon="@mipmap/wallet"
         android:title="Portfolio" />
 
     <item
         android:id="@+id/nav_notification"
-        android:icon="@mipmap/baseline_notifications_black_24dp"
+        android:icon="@mipmap/notifications"
         android:title="Notifications" />
 
     <item
         android:id="@+id/nav_settings"
-        android:icon="@mipmap/baseline_settings_black_24dp"
+        android:icon="@mipmap/settings"
         android:title="Settings" />
 
 </menu>

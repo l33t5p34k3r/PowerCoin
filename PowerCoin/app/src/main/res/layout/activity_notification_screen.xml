@@ -84,7 +84,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.922"
-            app:srcCompat="@mipmap/baseline_alarm_black_24dp" />
+            app:srcCompat="@mipmap/alarm" />
 
     </android.support.constraint.ConstraintLayout>
 

@@ -135,7 +135,7 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
 
         alert = Double.parseDouble(val);
 
-        notification.setSmallIcon(R.mipmap.baseline_alarm_black_24dp);
+        notification.setSmallIcon(R.mipmap.alarm);
         notification.setContentTitle("PowerCoin");
         notification.setTicker("");
         notification.setWhen(System.currentTimeMillis());
