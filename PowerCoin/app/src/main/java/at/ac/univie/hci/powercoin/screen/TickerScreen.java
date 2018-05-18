@@ -45,64 +45,69 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      * GRAPH RELATED
      * mHandler: https://developer.android.com/reference/android/os/Handler
      * mTimer: https://developer.android.com/reference/java/lang/Runnable
+     *
      * graph: creates Graph to fill
-     * currency: displays different currencies
+     * currText: saves the currency as text
+     * currSymbol: saves the currency as symbol
      */
     private final Handler mHandler = new Handler();
-    private ActionBarDrawerToggle mToggle;
+    private Runnable mTimer;
+
+    private Graph graph;
+    private String currText;
+    private String currSymbol;
+
     /**
      * HAMBURGER-MENU RELATED
-     * mDrawerLayout: Links to Layout for Hamburger Menu
      * mToggle: makes the Hamburger Button clickable
      */
-    private DrawerLayout mDrawerLayout;
-    private String upUrl;
-    private double upVal;
-    private long upTime;
+    private ActionBarDrawerToggle mToggle;
 
-    private RequestQueue sinceQueue;
-    private String sinceUrl;
     /**
      * API RELATED
      * upQueue: creates queue for API
      * upUrl: saves API-Url
      * upVal: saves latest price
      * upTime: saves latest time
-     * <p>
+     *
      * sinceQueue: creates queue for API
      * sinceUrl: saves API-Url
      * sinceVal: saves array of prices since now
      * sinceTime: saves array of times for the values
+     *
+     * firstVal: first entry of the interval
+     *
+     * currency: passes currency to API
      */
-    private RequestQueue upQueue;
-    private double[] sinceVal;
-    private double firstVal;
-    private long[] sinceTime;
-    private Runnable mTimer;
-    private Graph graph;
-    private String currency = " Dollar ";
-    private String currSymbol = " $ ";
-    private SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
 
+    private RequestQueue upQueue;
+    private String upUrl;
+    private double upVal;
+    private long upTime;
+
+    private RequestQueue sinceQueue;
+    private String sinceUrl;
+    private double[] sinceVal;
+    private long[] sinceTime;
+
+    private double firstVal;
+
+    private String currency;
 
     /**
-     * TEXT RELATED
-     * currencyView: displays the currency in text format
-     * valueView: displays the current Value of Bitcoin
+     * TEXTVIEW RELATED
+     * valueView: displays the current value of Bitcoin
      * changeView: displays the difference in the last time period
-     * timeperiodView: displays the time period
-     * <p>
+     *
      * dec: creates format for values in changeView
      */
-    private TextView currencyView;
+
     private TextView valueView;
     private TextView changeView;
-    private TextView timeperiodView;
 
     private static DecimalFormat dec = new DecimalFormat(".##");
 
-    /**
-     * SWIPE-TO-UPDATE RELATED
+    /** SWIPE-TO-UPDATE RELATED
      * SwipeRefreshLayout: creates binds to SwipeRefreshLayout in activity_ticker_screen.xml
      */
     private SwipeRefreshLayout swipeUpdate;
@@ -116,26 +121,53 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ticker_screen);
 
-        currencyView = findViewById(R.id.currency);
+        TextView currencyView = findViewById(R.id.currency);
         valueView = findViewById(R.id.value);
-        timeperiodView = findViewById(R.id.timeperiod);
+        TextView timeperiodView = findViewById(R.id.timeperiod);
         changeView = findViewById(R.id.change);
-
-        currencyView.setText("Dollar");
-        valueView.setText("0");
 
         menuInitialization();
 
+        //TODO: get currency from settings
+        currency = "USD";
+
+        if (currency.equals("USD")) {
+            currText = " Dollar ";
+            currSymbol = " $ ";
+        }
+
+        if (currency.equals("EUR")) {
+            currText = " Euro ";
+            currSymbol = " € ";
+        }
+
+        if (currency.equals("JPY")) {
+            currText = " Yen ";
+            currSymbol = " ¥ ";
+        }
+
+        if (currency.equals("GBP")) {
+            currText = " Pound ";
+            currSymbol = " £ ";
+        }
+
+        currencyView.setText(currText);
+
+        //TODO: get time from settings
+        int time = 24;
+
+        if (time == 24) timeperiodView.setText("last 24 hours");
+        if (time == 168) timeperiodView.setText("last 7 days");
+        if (time == 744) timeperiodView.setText("last month");
+
         //API RELATED
-        //TODO: make expandable
         upQueue = Volley.newRequestQueue(this);
-        upUrl = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
+        upUrl = "https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=" + currency + "&e=Kraken";
 
         sinceQueue = Volley.newRequestQueue(this);
-        //every hour for 24 hours
-        sinceUrl = "https://api.cryptowat.ch/markets/gdax/btcusd/trades?limit=500&since=" + ((System.currentTimeMillis() / 1000L) - 86400);
+        sinceUrl = "https://min-api.cryptocompare.com/data/histohour?fsym=BTC&tsym=" + currency + "&limit=" + time + "&e=Kraken";
 
-        timeperiodView.setText("last 24 hours");
+
 
         loadGraph();
 
@@ -157,7 +189,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    //------
+    //-----
     //Graph
     //-----
 
@@ -168,6 +200,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
         GraphView graphView = findViewById(R.id.graph);
 
+        final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         sdf.setTimeZone(TimeZone.getDefault());
 
         graph = new Graph(this);
@@ -181,11 +214,11 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 if (isValueX) {
                     return sdf.format(value);
                 }
-                return super.formatLabel(value, isValueX) + currSymbol;
+                return super.formatLabel(value, false) + currSymbol;
             }
         });
 
-        graphView.getGridLabelRenderer().setNumHorizontalLabels(4);
+        graphView.getGridLabelRenderer().setNumHorizontalLabels(5);
 
         swipeUpdate = findViewById(R.id.swiperefresh);
         swipeUpdate.setOnRefreshListener(this);
@@ -209,35 +242,32 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
                         try {
 
-                            JSONArray data = response.getJSONArray("result");
+                            JSONArray data = response.getJSONArray("Data");
                             sinceVal = new double[data.length()];
                             sinceTime = new long[data.length()];
 
                             for (int i = 0; i < sinceVal.length; i++) {
-                                sinceVal[i] = data.getJSONArray(i).getDouble(2);
-                                sinceTime[i] = data.getJSONArray(i).getLong(1) * 1000L;
+                                sinceVal[i] = data.getJSONObject(i).getDouble("close");
+                                sinceTime[i] = data.getJSONObject(i).getLong("time") * 1000L;
                             }
-
-                            System.out.println("since Time = " + sinceTime[0]);
-
-                            currencyView.setText(currency);
                             valueView.setText(dec.format(sinceVal[sinceVal.length - 1]));
 
                             firstVal = sinceVal[0];
-
-                            double change = sinceVal[sinceVal.length - 1] - firstVal;
+                            double percent = sinceVal[sinceVal.length - 1] / firstVal;
 
                             //if course has fallen
-                            if (change < 0) {
-                                changeView.setText("-" + dec.format(change) + currSymbol);
+                            if (percent < 1) {
+                                percent = (1 - percent) * 100;
+                                changeView.setText("-" + dec.format(percent) + "%");
                                 changeView.setTextColor(Color.RED);
                             }
                             //if course has risen
-                            if (change > 0) {
-                                changeView.setText("+" + dec.format(change) + currSymbol);
+                            else if (percent > 1) {
+                                percent = (percent - 1) * 100;
+                                changeView.setText("+" + dec.format(percent) + "%");
                                 changeView.setTextColor(Color.rgb(0, 100, 0));
                             }
-                            if (change == 0) {
+                            if (percent == 1) {
                                 changeView.setText("No Change");
                                 changeView.setTextColor(Color.BLACK);
                             }
@@ -276,26 +306,25 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                     public void onResponse(JSONObject response) {
                         Log.i("UPDATE_API_RESPONSE", response.toString());
                         try {
-
-                            JSONObject data = response.getJSONObject("result");
-                            upVal = data.getDouble("price");
+                            upVal = response.getDouble(currency);
                             upTime = System.currentTimeMillis();
 
-                            currencyView.setText(currency);
                             valueView.setText(dec.format(upVal));
 
-                            double change = upVal - firstVal;
+                            double percent = upVal / firstVal;
 
-                            if (change < 0) {
-                                changeView.setText("-" + dec.format(change) + currSymbol);
+                            //if course has fallen
+                            if (percent < 1) {
+                                percent = (1 - percent) * 100;
+                                changeView.setText("-" + dec.format(percent) + "%");
                                 changeView.setTextColor(Color.RED);
                             }
                             //if course has risen
-                            if (change > 0) {
-                                changeView.setText("+" + dec.format(change) + currSymbol);
+                            else if (percent > 1) {
+                                percent = (percent - 1) * 100;
+                                changeView.setText("+" + dec.format(percent) + "%");
                                 changeView.setTextColor(Color.rgb(0, 100, 0));
-                            }
-                            if (change == 0) {
+                            } else if (percent == 1) {
                                 changeView.setText("No Change");
                                 changeView.setTextColor(Color.BLACK);
                             }
@@ -378,7 +407,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      * Initializes Hamburger Menu, allowing the user to go to a different screen
      */
     private void menuInitialization() {
-        mDrawerLayout = findViewById(R.id.drawerLayout);
+        DrawerLayout mDrawerLayout = findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
 
         mDrawerLayout.addDrawerListener(mToggle);
@@ -414,39 +443,11 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Menu-Related Functions
-     */
-
-    /*
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_ticker_screen, menu);
-        return true;
-    }
-*/
-
-    /**
-     * Handle action bar item clicks here. The action bar will
-     * automatically handle clicks on the Home/Up button, so long
-     * as you specify a parent activity in AndroidManifest.xml.
+     * Menu-Related Function
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        //enables Hamburger-Menu to be opened by pressing the button
-        if (mToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-
-        /**kept for future reference
-         *noinspection SimplifiableIfStatement
-         *if (id == R.id.action_settings) {
-         *startPortfolio();
-         *return true;
-         *}
-         */
+        return mToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
     public void startTicker() {
