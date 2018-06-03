@@ -11,6 +11,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -26,21 +27,32 @@ import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
+import com.jjoe64.graphview.Viewport;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.TimeZone;
 
 import at.ac.univie.hci.powercoin.R;
 import at.ac.univie.hci.powercoin.functionality.Graph;
 
-
 public class TickerScreen extends AppCompatActivity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
+    private static DecimalFormat dec = new DecimalFormat(".##");
     /**
      * GRAPH RELATED
      * mHandler: https://developer.android.com/reference/android/os/Handler
@@ -52,17 +64,14 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
     private final Handler mHandler = new Handler();
     private Runnable mTimer;
-
     private Graph graph;
     private String currText;
     private String currSymbol;
-
     /**
      * HAMBURGER-MENU RELATED
      * mToggle: makes the Hamburger Button clickable
      */
     private ActionBarDrawerToggle mToggle;
-
     /**
      * API RELATED
      * upQueue: creates queue for API
@@ -78,22 +87,21 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      * firstVal: first entry of the interval
      *
      * currency: passes currency to API
+     * scale: passes the scale to API
      */
 
     private RequestQueue upQueue;
     private String upUrl;
     private double upVal;
     private long upTime;
-
     private RequestQueue sinceQueue;
     private String sinceUrl;
     private double[] sinceVal;
     private long[] sinceTime;
-
     private double firstVal;
-
     private String currency;
-
+    private String scale;
+    private int time;
     /**
      * TEXTVIEW RELATED
      * valueView: displays the current value of Bitcoin
@@ -103,11 +111,10 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
 
     private TextView valueView;
+    private TextView currSymView;
     private TextView changeView;
-
-    private static DecimalFormat dec = new DecimalFormat(".##");
-
-    /** SWIPE-TO-UPDATE RELATED
+    /**
+     * SWIPE-TO-UPDATE RELATED
      * SwipeRefreshLayout: creates binds to SwipeRefreshLayout in activity_ticker_screen.xml
      */
     private SwipeRefreshLayout swipeUpdate;
@@ -123,13 +130,39 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
         TextView currencyView = findViewById(R.id.currency);
         valueView = findViewById(R.id.value);
+        currSymView = findViewById(R.id.currSym);
         TextView timeperiodView = findViewById(R.id.timeperiod);
         changeView = findViewById(R.id.change);
 
         menuInitialization();
 
-        //TODO: get currency from settings
-        currency = "USD";
+        try {
+            File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "currency.txt");
+
+            if (file.exists()) {
+                FileReader fr = new FileReader(file);
+                BufferedReader br = new BufferedReader(fr);
+
+                currency = br.readLine();
+
+                fr.close();
+                br.close();
+            } else {
+
+                FileWriter cw = new FileWriter(file);
+                PrintWriter pw = new PrintWriter(cw);
+
+                currency = "USD";
+                pw.print(currency);
+
+
+                pw.close();
+                cw.close();
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         if (currency.equals("USD")) {
             currText = " Dollar ";
@@ -153,24 +186,50 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
         currencyView.setText(currText);
 
-        //TODO: get time from settings
-        int time = 24;
+        try {
+            File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "timeperiod.txt");
 
-        if (time == 24) timeperiodView.setText("last 24 hours");
-        if (time == 168) timeperiodView.setText("last 7 days");
-        if (time == 744) timeperiodView.setText("last month");
+            if (file.exists()) {
+                FileReader fr = new FileReader(file);
+
+                time = fr.read();
+
+                fr.close();
+            } else {
+
+                FileWriter cw = new FileWriter(file);
+
+                time = 24;
+                cw.write(time);
+
+                cw.close();
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (time == 24) {
+            timeperiodView.setText("last 24 hours");
+            scale = "hour";
+        }
+        if (time == 168) {
+            timeperiodView.setText("last 7 days");
+            scale = "hour";
+        }
+        if (time == 31) {
+            timeperiodView.setText("last month");
+            scale = "day";
+        }
 
         //API RELATED
         upQueue = Volley.newRequestQueue(this);
         upUrl = "https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=" + currency + "&e=Kraken";
 
         sinceQueue = Volley.newRequestQueue(this);
-        sinceUrl = "https://min-api.cryptocompare.com/data/histohour?fsym=BTC&tsym=" + currency + "&limit=" + time + "&e=Kraken";
-
-
+        sinceUrl = "https://min-api.cryptocompare.com/data/histo" + scale + "?fsym=BTC&tsym=" + currency + "&limit=" + time + "&e=Kraken";
 
         loadGraph();
-
     }
 
     @Override
@@ -198,34 +257,65 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
     private void createGraph() {
 
+        Log.d("createGraph", "creating graph with time: " + Double.toString(time));
+
         GraphView graphView = findViewById(R.id.graph);
 
-        final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-        sdf.setTimeZone(TimeZone.getDefault());
+        final SimpleDateFormat day = new SimpleDateFormat("HH:mm");
+        final SimpleDateFormat week = new SimpleDateFormat("EEE");
+        final SimpleDateFormat month = new SimpleDateFormat("dd.MM");
+
+        day.setTimeZone(TimeZone.getDefault());
+        week.setTimeZone(TimeZone.getDefault());
+        month.setTimeZone(TimeZone.getDefault());
 
         graph = new Graph(this);
-        graphView.addSeries(graph.newGraph(sinceVal, sinceTime));
 
-        graphView.getViewport().setScalable(true);
+        LineGraphSeries<DataPoint> mSeries = graph.newDataPoints(sinceVal, sinceTime, currSymbol);
+        graphView.addSeries(mSeries);
 
-        graphView.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
+
+        //GRIDLABELRENDERER HERE
+        GridLabelRenderer glr = graphView.getGridLabelRenderer();
+
+        glr.setHumanRounding(true, true);
+
+        final DecimalFormat df = new DecimalFormat("#");
+
+        glr.setLabelFormatter(new DefaultLabelFormatter() {
             @Override
             public String formatLabel(double value, boolean isValueX) {
                 if (isValueX) {
-                    return sdf.format(value);
-                }
-                return super.formatLabel(value, false) + currSymbol;
+                    if (time == 24)
+                        return day.format(value);
+                    if (time == 168)
+                        return week.format(value);
+                    if (time == 31) {
+                        Log.d("formatLabel", "the current value is: " + Double.toString(value));
+                        return month.format(value);
+
+                    } else
+                        return "ERROR";
+                } else
+                    return df.format(value) + currSymbol;
             }
         });
 
-        graphView.getGridLabelRenderer().setNumHorizontalLabels(5);
+
+        //VIEWPORT HERE
+
+        Viewport gv = graphView.getViewport();
+
+        gv.setMinX(graphView.getViewport().getMinX(true));
+        gv.setXAxisBoundsManual(true);
+
+
 
         swipeUpdate = findViewById(R.id.swiperefresh);
         swipeUpdate.setOnRefreshListener(this);
 
         Button buttonUpdate = findViewById(R.id.graphManualUpdate);
         buttonUpdate.setOnClickListener(this);
-
     }
 
     /**
@@ -251,6 +341,11 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                                 sinceTime[i] = data.getJSONObject(i).getLong("time") * 1000L;
                             }
                             valueView.setText(dec.format(sinceVal[sinceVal.length - 1]));
+                            currSymView.setText(currSymbol);
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
+                            TextView lastView = findViewById(R.id.last_update_ticker);
+                            lastView.setText("last update: " + sdf.format(new Date(System.currentTimeMillis())));
 
                             firstVal = sinceVal[0];
                             double percent = sinceVal[sinceVal.length - 1] / firstVal;
@@ -293,7 +388,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 });
         sinceQueue.add(sinceReq);
 
-    } //TODO: Scaling for different Time Periods
+    }
 
     /**
      * Updates Graph with the latest value from the API
@@ -310,6 +405,11 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                             upTime = System.currentTimeMillis();
 
                             valueView.setText(dec.format(upVal));
+                            currSymView.setText(currSymbol);
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
+                            TextView lastView = findViewById(R.id.last_update_ticker);
+                            lastView.setText("last update: " + sdf.format(new Date(upTime)));
 
                             double percent = upVal / firstVal;
 
@@ -329,7 +429,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                                 changeView.setTextColor(Color.BLACK);
                             }
 
-                            graph.updateGraph(upVal, upTime);
+                            graph.update(upVal, upTime);
 
                         } catch (JSONException e) {
                             Toast.makeText(TickerScreen.this,
@@ -433,9 +533,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                     case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case (R.id.nav_settings):
-                        startSettings();
-                        break;
                 }
                 return false;
             }
@@ -445,10 +542,135 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
     /**
      * Menu-Related Function
      */
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_currency, menu);
+        return true;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_dollar:
+
+                try {
+                    File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "currency.txt");
+                    FileWriter cw = new FileWriter(file);
+                    PrintWriter pw = new PrintWriter(cw);
+
+                    currency = "USD";
+                    pw.print(currency);
+
+                    pw.close();
+                    cw.close();
+                    finish();
+                    startTicker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            case R.id.action_euro:
+
+                try {
+                    File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "currency.txt");
+                    FileWriter cw = new FileWriter(file);
+                    PrintWriter pw = new PrintWriter(cw);
+
+                    currency = "EUR";
+                    pw.print(currency);
+
+                    pw.close();
+                    cw.close();
+                    finish();
+                    startTicker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            case R.id.action_yen:
+
+                try {
+                    File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "currency.txt");
+                    FileWriter cw = new FileWriter(file);
+                    PrintWriter pw = new PrintWriter(cw);
+
+                    currency = "JPY";
+                    pw.print(currency);
+
+                    pw.close();
+                    cw.close();
+                    finish();
+                    startTicker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            case R.id.action_pound:
+
+                try {
+                    File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "currency.txt");
+                    FileWriter cw = new FileWriter(file);
+                    PrintWriter pw = new PrintWriter(cw);
+
+                    currency = "GBP";
+                    pw.print(currency);
+
+                    pw.close();
+                    cw.close();
+                    finish();
+                    startTicker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            case R.id.action_timeperiod_day:
+                try {
+                    File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "timeperiod.txt");
+                    FileWriter cw = new FileWriter(file);
+
+                    time = 24;
+                    cw.write(24);
+                    cw.close();
+                    finish();
+                    startTicker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            case R.id.action_timeperiod_week:
+                try {
+                    File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "timeperiod.txt");
+                    FileWriter cw = new FileWriter(file);
+
+                    time = 168;
+                    cw.write(168);
+                    cw.close();
+                    finish();
+                    startTicker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            case R.id.action_timeperiod_month:
+                try {
+                    File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "timeperiod.txt");
+                    FileWriter cw = new FileWriter(file);
+
+                    time = 31;
+                    cw.write(31);
+                    cw.close();
+                    finish();
+                    startTicker();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+
+        }
         return mToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
+
 
     public void startTicker() {
         Intent intent = new Intent(this, TickerScreen.class);
@@ -462,11 +684,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
-        startActivity(intent);
-    }
-
-    public void startSettings() {
-        Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
     }
 

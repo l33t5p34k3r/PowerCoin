@@ -13,7 +13,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +40,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -45,8 +49,12 @@ import java.util.regex.Pattern;
 
 import at.ac.univie.hci.powercoin.R;
 
-public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener {
+public class PortfolioScreen extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
+    public static final String HISTORY_DATE_MESSAGE = "historyFileDate";
+    public static final String HISTORY_BTC_MESSAGE = "historyFileBTC";
+    private static DecimalFormat dec = new DecimalFormat(".##");
+    double bitcoinAmount;
     /**
      * HAMBURGER-MENU RELATED
      * mDrawerLayout: Links to Layout for Hamburger Menu
@@ -54,30 +62,36 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-
     /**
      * CONVERSION RELATED
      */
     private TextView bitcoinView;
-    private TextView euroDollarView;
-
+    private TextView fiatView;
+    private TextView lastTimeView;
     /**
      * HISTORY RELATED
      */
     private TextInputLayout bitcoinWrapper;
-    double bitcoinAmount;
-    public static final String HISTORY_DATE_MESSAGE = "historyFileDate";
-    public static final String HISTORY_BTC_MESSAGE = "historyFileBTC";
-
     /**
      * API RELATED
      */
-    private String upUrlDollar;
-    private String upUrlEuro;
-    private double upValDollar;
-    private double upValEuro;
-    private RequestQueue requestQueueDollar;
-    private RequestQueue requestQueueEuro;
+
+    //which value in fiat
+    private double value;
+
+    //when did the api update;
+    private long lastTime;
+
+    //which currency is being used
+    private String currency;
+
+    private String currSym;
+
+    //requestqueue for API
+    private RequestQueue requestQueue;
+
+
+
 
     //--------------
     //Main Functions
@@ -123,12 +137,16 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_portfolio_screen);
         bitcoinView = findViewById(R.id.valNum);
-        euroDollarView = findViewById(R.id.valEurDol);
+        fiatView = findViewById(R.id.currencyVal);
+        lastTimeView = findViewById(R.id.last_update_portfolio);
 
         menuInitialization();
 
-        //API
-        apiFunction();
+        Spinner currencySpinner = findViewById(R.id.currencySpinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.currency_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(adapter);
+        currencySpinner.setOnItemSelectedListener(this);
 
 
         //Portfolio Functions
@@ -139,9 +157,9 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         String bitcoinText = "0";
         if (bitcoinAmount != 0) {
             bitcoinText = Double.toString(bitcoinAmount);
-            bitcoinView.setText(bitcoinText);
-        } else bitcoinView.setText(bitcoinText);
-        newConversion();
+            bitcoinView.setText(bitcoinText + " BTC");
+        } else bitcoinView.setText(bitcoinText + " BTC");
+        // newConversion();
 
 
         Button buttonAdd = findViewById(R.id.buttonAdd);
@@ -157,6 +175,9 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         buttonDeleteH.setOnClickListener(this);
 
         bitcoinWrapper = findViewById(R.id.textInputBTC);
+
+        requestQueue = Volley.newRequestQueue(this);
+
     }
 
     @Override
@@ -181,7 +202,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             default:
                 throw new RuntimeException("Unknown button ID");
         }
-        newConversion();
+        //newConversion();
     }
 
     /**
@@ -193,8 +214,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
             bitcoinAmount += Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
             if (bitcoinAmount < 0) {
-                bitcoinAmount = 0;
-                Toast.makeText(PortfolioScreen.this, "Too much BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
+                bitcoinAmount = 0.0;
+                Toast.makeText(PortfolioScreen.this, "Too many BTC removed. Reverting to 0.", Toast.LENGTH_LONG).show();
             }
             date = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault()).format(new Date());
         } else {
@@ -209,7 +230,11 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         writeToFileBTC(" (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount + "\n", this);
         Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
-        bitcoinView.setText(bitcoinText);
+
+        apiFunction();
+
+        bitcoinView.setText(bitcoinText + " BTC");
+        fiatView.setText(dec.format(round(value, 2)) + currSym);
     }
 
 
@@ -241,7 +266,11 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         writeToFileBTC(" (-" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount + "\n", this);
         Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
-        bitcoinView.setText(bitcoinText);
+
+        apiFunction();
+
+        bitcoinView.setText(bitcoinText + " BTC");
+        fiatView.setText(dec.format(round(value, 2)) + currSym);
     }
 
     /**
@@ -251,9 +280,11 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         this.deleteFile("PortfolioHistoryDATE.txt");
         this.deleteFile("PortfolioHistoryBTC.txt");
         bitcoinAmount = 0;
-        bitcoinView.setText("0");
+        bitcoinView.setText("0 BTC");
         Log.i("DELETE_BUTTON", "History was deleted!");
     }
+
+    /*
 
     public void newConversion() {
         double valueEuro;
@@ -261,10 +292,13 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         valueEuro = bitcoinAmount * upValEuro;
         valueDollar = bitcoinAmount * upValDollar;
         String textEurDol;
-        textEurDol = " = " + round(valueEuro, 2) + " Euro / " + round(valueDollar, 2) + " Dollar";
+        Log.d("bitcoin is", Double.toString(upValEuro));
+
+        Log.d("conversion", Double.toString(valueEuro));
+        textEurDol = " = " + round(valueEuro, 2) + " €" + '\n' + round(valueDollar, 2) + " $";
         euroDollarView.setText(textEurDol);
     }
-
+*/
     //---------------
     //Other Functions
     //---------------
@@ -387,19 +421,33 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * This function calls the API and gets the newest bitcoin value in USD and EUR
+     * This function calls the API and gets the newest bitcoin value in fiat
      */
     public void apiFunction() {
-        upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
-        requestQueueDollar = Volley.newRequestQueue(this);
-
-        JsonRequest dollarRequest = new JsonObjectRequest(
-                Request.Method.GET, upUrlDollar, null,
+        JsonRequest request = new JsonObjectRequest(
+                Request.Method.GET, "https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=" + currency + "&e=Kraken", null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
-                        upValDollar = UpProcessResult(response);
+                        Log.i("UPDATE_API_RESPONSE", response.toString());
+                        try {
+                            value = response.getDouble(currency);
+                            double total = value * bitcoinAmount;
+                            lastTime = System.currentTimeMillis();
+
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
+                            System.out.println(lastTime);
+                            lastTimeView.setText("last update: " + sdf.format(new Date(lastTime)));
+
+                            fiatView.setText(dec.format(round(total, 2)) + currSym);
+
+                        } catch (JSONException e) {
+                            Toast.makeText(PortfolioScreen.this,
+                                    "Could not parse API response!",
+                                    Toast.LENGTH_LONG).show();
+                            Log.e("PARSER_ERROR", e.getMessage());
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -410,31 +458,11 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                                 Toast.LENGTH_LONG).show();
                         if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
-                });
-        requestQueueDollar.add(dollarRequest);
+                }
+        );
+        System.out.println(request);
 
-        upUrlEuro = "https://api.cryptowat.ch/markets/kraken/btceur/price";
-        requestQueueEuro = Volley.newRequestQueue(this);
-
-        JsonRequest eurRequest = new JsonObjectRequest(
-                Request.Method.GET, upUrlEuro, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
-                        upValEuro = UpProcessResult(response);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(PortfolioScreen.this,
-                                "Please try again!",
-                                Toast.LENGTH_LONG).show();
-                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
-                    }
-                });
-        requestQueueEuro.add(eurRequest);
+        requestQueue.add(request);
     }
 
     /**
@@ -443,7 +471,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
      * @param apiResponse
      * @return upVal - the newest bitcoin value
      */
-    private double UpProcessResult(JSONObject apiResponse) {
+    private double getPrice(JSONObject apiResponse) {
         try {
 
             JSONObject data = apiResponse.getJSONObject("result");
@@ -489,9 +517,6 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                     case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case (R.id.nav_settings):
-                        startSettings();
-                        break;
                 }
                 return false;
             }
@@ -528,9 +553,33 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         startActivity(intent);
     }
 
-    public void startSettings() {
-        Intent intent = new Intent(this, SettingsScreen.class);
-        startActivity(intent);
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        String selected = parent.getItemAtPosition(position).toString();
+
+        if (selected.equals("Dollar")) {
+            currency = "USD";
+            currSym = " $ ";
+        }
+        if (selected.equals("Euro")) {
+            currency = "EUR";
+            currSym = " € ";
+
+        }
+        if (selected.equals("Yen")) {
+            currency = "JPY";
+            currSym = " ¥ ";
+        }
+        if (selected.equals("Pound")) {
+            currency = "GBP";
+            currSym = " £ ";
+        }
+
+        apiFunction();
     }
 
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+        Toast.makeText(this, "HELLO DUDE", Toast.LENGTH_SHORT).show();
+    }
 }

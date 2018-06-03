@@ -38,28 +38,27 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
      * API RELATED
      */
     private final Handler mHandler = new Handler();
-    private ActionBarDrawerToggle mToggle;
     /**
      * NOTIFICATION RELATED
      */
     NotificationCompat.Builder notification;
+    /**
+     * TEXT RELATED
+     */
+    TextView currPrice;
+    TextView entry1;
+    private ActionBarDrawerToggle mToggle;
     private Runnable mTimer;
     private String priceUrl = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
     private double price;
     private double alert = 0;
     private RequestQueue priceQueue;
     /**
-     * TEXT RELATED
-     */
-    TextView currPrice;
-    /**
      * HAMBURGER-MENU RELATED
      * mDrawerLayout: Links to Layout for Hamburger Menu
      * mToggle: makes the Hamburger Button clickable
      */
     private DrawerLayout mDrawerLayout;
-    TextView entry1;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +89,6 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
                         break;
                     case (R.id.nav_portfolio):
                         startPortfolio();
-                        break;
-                    case (R.id.nav_settings):
-                        startSettings();
                         break;
                 }
                 return false;
@@ -146,7 +142,7 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
 
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        notification.setContentText("Bitcoin has reched value: " + alert + "!");
+        notification.setContentText("Bitcoin has reached value: " + alert + "!");
         nm.notify(2323, notification.build());
 
     }
@@ -243,11 +239,6 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
 
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
-        startActivity(intent);
-    }
-
-    public void startSettings() {
-        Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
     }
 }

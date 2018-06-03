@@ -11,7 +11,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.OnDataPointTapListener;
 import com.jjoe64.graphview.series.Series;
 
-import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,30 +34,30 @@ public class Graph {
 
     /**
      * Graph Context setter
+     *
      * @param context
      */
-    public Graph(Context context){
+    public Graph(Context context) {
         this.context = context;
     }
 
 
     /**
-     * Initializes graph
-     * @param oldVal array of all the value-entries
+     * Initializes DataPoints for Graph
+     *
+     * @param oldVal  array of all the value-entries
      * @param oldTime array of all the time-entries
      * @return data points with values for graph
      */
-    public LineGraphSeries<DataPoint> newGraph(double [] oldVal, long [] oldTime){
-        Log.i("GRAPH", "New Graph being created");
+    public LineGraphSeries<DataPoint> newDataPoints(double[] oldVal, long[] oldTime, final String currSymbol) {
+        Log.d("GRAPH.java", "New DataPointSeries being created");
 
-        Long [] time = new Long[oldTime.length];
+        Long[] time = new Long[oldTime.length];
 
 
         for (int i = 0; i < oldVal.length; i++) {
-            time[i] =  oldTime[i];
+            time[i] = oldTime[i];
         }
-
-        System.out.println("time is: " + time[0]);
 
         Set<Long> tmp = new HashSet<>();
 
@@ -65,57 +65,60 @@ public class Graph {
             tmp.add(time[i]);
         }
 
-        time =  tmp.toArray(new Long[tmp.size()]);
+        time = tmp.toArray(new Long[tmp.size()]);
 
-        DataPoint[] newGraph = new DataPoint[time.length];
+        DataPoint[] dataPointArray = new DataPoint[time.length];
 
         int count = 0;
 
         for (int i = 0; i < oldVal.length; i++) {
 
-            Date date = new Date(oldTime[i]);
-
-            if (date.getTime() > graphLastXValue) {
-                newGraph[count] = new DataPoint(date, oldVal[i]);
-                graphLastXValue = date.getTime();
+            if (oldTime[i] > graphLastXValue) {
+                dataPointArray[count] = new DataPoint(oldTime[i], oldVal[i]);
+                graphLastXValue = oldTime[i];
                 count++;
             }
         }
 
-        mSeries = new LineGraphSeries<>(newGraph);
+        mSeries = new LineGraphSeries<>(dataPointArray);
 
-
-        mSeries.setDrawDataPoints(true);
+        mSeries.setDrawDataPoints(false);
         mSeries.setDataPointsRadius(10);
+
 
         mSeries.setDrawBackground(true);
 
         mSeries.setOnDataPointTapListener(new OnDataPointTapListener() {
             @Override
             public void onTap(Series series, DataPointInterface dataPoint) {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd.MMM HH:mm");
                 Toast toast;
-                toast = Toast.makeText(context, " $ " + dataPoint.getY(), Toast.LENGTH_SHORT);
+                toast = Toast.makeText(context, dataPoint.getY() + currSymbol + " at " + sdf.format(dataPoint.getX()) + "", Toast.LENGTH_SHORT);
                 toast.setGravity(Gravity.NO_GRAVITY, 0, 0);
                 toast.setDuration(Toast.LENGTH_SHORT);
                 toast.show();
             }
         });
 
-        Log.i("GRAPH", "New Graph succesfully created");
+        Log.d("GRAPH.java", "DataPoints successfully added to mSeries");
         return mSeries;
     }
 
     /**
      * Updates Graph
+     *
      * @param newVal
      * @param newTime
      */
-    public void updateGraph(double newVal, long newTime){
+    public void update(double newVal, long newTime) {
 
-        Date date = new Date(newTime);
-        if (date.getTime() > graphLastXValue) {
-            graphLastXValue = date.getTime();
-            mSeries.appendData(new DataPoint(graphLastXValue, newVal), false, Integer.MAX_VALUE);
+        Log.d("GRAPH.java", "updating mSeries");
+
+        if (newTime > graphLastXValue) {
+            graphLastXValue = newTime;
+            mSeries.appendData(new DataPoint(graphLastXValue, newVal), true, Integer.MAX_VALUE);
         }
+        Log.d("GRAPH.java", "mSeries successfully updated");
+
     }
 }

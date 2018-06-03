@@ -86,9 +86,6 @@ public class HistoryScreen extends AppCompatActivity {
                     case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case (R.id.nav_settings):
-                        startSettings();
-                        break;
                 }
                 return false;
             }
@@ -122,11 +119,6 @@ public class HistoryScreen extends AppCompatActivity {
 
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
-        startActivity(intent);
-    }
-
-    public void startSettings() {
-        Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
     }
 

@@ -24,12 +24,10 @@
         </activity>
 
         <!-- ADD ALL SCREENS HERE -->
-        <activity android:name=".screen.PortfolioScreen"
-            android:theme="@style/AppTheme" />
+        <activity android:name=".screen.PortfolioScreen" />
         <activity android:name=".screen.HistoryScreen" />
         <activity android:name=".screen.NotificationScreen" />
         <activity android:name=".screen.CalculatorScreen" />
-        <activity android:name=".screen.SettingsScreen" />
     </application>
 
 </manifest>

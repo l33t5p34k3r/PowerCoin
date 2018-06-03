@@ -20,8 +20,7 @@ public class NotificationDialog extends AppCompatDialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder= new AlertDialog.Builder(getActivity());
-
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -63,12 +62,12 @@ public class NotificationDialog extends AppCompatDialogFragment {
         try {
             listener = (NotificationDialogListener) context;
         } catch (ClassCastException e) {
-           throw new ClassCastException(context.toString() +
-                   "must implement NotificationDialogListener");
+            throw new ClassCastException(context.toString() +
+                    "must implement NotificationDialogListener");
         }
     }
 
-    public interface NotificationDialogListener{
+    public interface NotificationDialogListener {
         void applyText(String value);
     }
 }

@@ -11,7 +11,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -27,6 +29,8 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import at.ac.univie.hci.powercoin.R;
 
@@ -34,6 +38,7 @@ import static at.ac.univie.hci.powercoin.screen.PortfolioScreen.isDouble;
 
 public class CalculatorScreen extends AppCompatActivity implements View.OnClickListener {
 
+    double bitcoinAmount;
     /**
      * HAMBURGER-MENU RELATED
      * mDrawerLayout: Links to Layout for Hamburger Menu
@@ -41,47 +46,24 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
      */
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mToggle;
-
     /**
      * API RELATED
      */
-    private String upUrlDollar;
-    private String upUrlEuro;
-    private double upValDollar;
-    private double upValEuro;
-    private RequestQueue requestQueueDollar;
-    private RequestQueue requestQueueEuro;
+    private double exVal;
+    private String currency;
 
+    private RequestQueue requestQueue;
     /**
      * CALCULATOR RELATED
      */
+    private TextView lastTimeView;
     private TextInputLayout bitcoinWrapper;
-    private TextInputLayout bitcoinWrapper2;
-    double bitcoinAmount;
+    private TextInputLayout fiatWrapper;
 
 
     //--------------
     //Main Functions
     //--------------
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_calculator_screen);
-
-        menuInitialization();
-        apiFunction();
-
-        Button buttonEuro = findViewById(R.id.buttonEuro);
-        buttonEuro.setOnClickListener(this);
-
-        Button buttonDollar = findViewById(R.id.buttonDollar);
-        buttonDollar.setOnClickListener(this);
-
-        bitcoinWrapper = findViewById(R.id.textInputBTC);
-        bitcoinWrapper2 = findViewById(R.id.textInputEurDol);
-
-    }
 
     /**
      * Rounding Function
@@ -98,73 +80,114 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
         return bigD.doubleValue();
     }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_calculator_screen);
+
+        menuInitialization();
+
+        Button buttonEuro = findViewById(R.id.buttonEuro);
+        buttonEuro.setOnClickListener(this);
+
+        Button buttonDollar = findViewById(R.id.buttonDollar);
+        buttonDollar.setOnClickListener(this);
+
+        Button buttonYen = findViewById(R.id.buttonYen);
+        buttonYen.setOnClickListener(this);
+
+        Button buttonPound = findViewById(R.id.buttonPound);
+        buttonPound.setOnClickListener(this);
+
+        bitcoinWrapper = findViewById(R.id.textInputBTC);
+        fiatWrapper = findViewById(R.id.textInputFiat);
+        lastTimeView = findViewById(R.id.last_update_calc);
+
+        requestQueue = Volley.newRequestQueue(this);
+    }
+
     //----------
     //Calculator
     //----------
 
     @Override
     public void onClick(View view) {
+
+        InputMethodManager inputManager = (InputMethodManager)
+                getSystemService(this.INPUT_METHOD_SERVICE);
+
         switch (view.getId()) {
             case R.id.buttonEuro:
                 Log.d("EURO_BUTTON", "Button was clicked!");
                 euroClicked();
+                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                        InputMethodManager.HIDE_NOT_ALWAYS);
                 break;
             case R.id.buttonDollar:
                 Log.d("DOLLAR_BUTTON", "Button was clicked! :D");
                 dollarClicked();
+                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                        InputMethodManager.HIDE_NOT_ALWAYS);
+                break;
+            case R.id.buttonYen:
+                Log.d("DOLLAR_BUTTON", "Button was clicked! :D");
+                yenClicked();
+                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                        InputMethodManager.HIDE_NOT_ALWAYS);
+                break;
+            case R.id.buttonPound:
+                Log.d("DOLLAR_BUTTON", "Button was clicked! :D");
+                poundClicked();
+                inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                        InputMethodManager.HIDE_NOT_ALWAYS);
                 break;
             default:
                 throw new RuntimeException("Unknown button ID");
         }
     }
 
-    /**
-     * When "EURO" Button is clicked:
-     * if there is a value in the BTC field, then it is converted to EUR
-     * if there is a value in EUR field, then it is converted to BTC
-     */
     private void euroClicked() {
-        Intent intent = getIntent();
-        double bitcoinVal = 0;
-        if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
-            bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
-            Log.d("VAL", Double.toString(upValEuro));
-            bitcoinAmount = bitcoinVal * upValEuro;
-            bitcoinWrapper2.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
-            bitcoinWrapper.getEditText().setText("");
-
-        } else if (isDouble(bitcoinWrapper2.getEditText().getText().toString())) {
-            bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
-            Log.d("VAL", Double.toString(upValEuro));
-            bitcoinAmount = bitcoinVal / upValEuro;
-            bitcoinWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
-            bitcoinWrapper2.getEditText().setText("");
-        }
-
+        currency = "EUR";
+        apiFunction();
+        calculate();
+    }
+    private void dollarClicked() {
+        currency = "USD";
+        apiFunction();
+        calculate();
     }
 
-    /**
-     * When "DOLLAR" Button is clicked:
-     * if there is a value in the BTC field, then it is converted to USD
-     * if there is a value in USD field, then it is converted to BTC
-     */
-    private void dollarClicked() {
-        Intent intent = getIntent();
-        double bitcoinVal = 0;
+    private void yenClicked() {
+        currency = "JPY";
+        apiFunction();
+        calculate();
+    }
+
+    private void poundClicked() {
+        currency = "GBP";
+        apiFunction();
+
+        System.out.println("Value in poundclicked is: " + exVal);
+        calculate();
+    }
+
+    private void calculate() {
+        double bitcoinVal;
+        System.out.println("Value in calc is: " + exVal);
         if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
-            Log.d("VAL", Double.toString(upValDollar));
-            bitcoinAmount = bitcoinVal * upValDollar;
-            bitcoinWrapper2.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
+            Log.d("VAL", Double.toString(exVal));
+            bitcoinAmount = bitcoinVal * exVal;
+            fiatWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper.getEditText().setText("");
-        } else if (isDouble(bitcoinWrapper2.getEditText().getText().toString())) {
-            bitcoinVal = Double.parseDouble(bitcoinWrapper2.getEditText().getText().toString());
-            Log.d("VAL", Double.toString(upValDollar));
-            bitcoinAmount = bitcoinVal / upValDollar;
-            bitcoinWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
-            bitcoinWrapper2.getEditText().setText("");
-        }
 
+        } else if (isDouble(fiatWrapper.getEditText().getText().toString())) {
+            bitcoinVal = Double.parseDouble(fiatWrapper.getEditText().getText().toString());
+            Log.d("VAL", Double.toString(exVal));
+            bitcoinAmount = bitcoinVal / exVal;
+            bitcoinWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
+            fiatWrapper.getEditText().setText("");
+        }
     }
 
     //---------------
@@ -201,9 +224,6 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
                     case (R.id.nav_notification):
                         startNotification();
                         break;
-                    case (R.id.nav_settings):
-                        startSettings();
-                        break;
                 }
                 return false;
             }
@@ -213,17 +233,29 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
     /**
      * This function calls the API and gets the newest bitcoin value in USD and EUR
      */
-    private void apiFunction() {
-        upUrlDollar = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
-        requestQueueDollar = Volley.newRequestQueue(this);
 
-        JsonRequest dollarRequest = new JsonObjectRequest(
-                Request.Method.GET, upUrlDollar, null,
+
+    public void apiFunction() {
+        JsonRequest request = new JsonObjectRequest(
+                Request.Method.GET, "https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=" + currency + "&e=Kraken", null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
-                        upValDollar = UpProcessResult(response);
+                        Log.i("UPDATE_API_RESPONSE", response.toString());
+                        try {
+                            exVal = response.getDouble(currency);
+                            long lastTime = System.currentTimeMillis();
+
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
+                            lastTimeView.setText("last update: " + sdf.format(new Date(lastTime)));
+
+                        } catch (JSONException e) {
+                            Toast.makeText(CalculatorScreen.this,
+                                    "Could not parse API response!",
+                                    Toast.LENGTH_LONG).show();
+                            Log.e("PARSER_ERROR", e.getMessage());
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -234,31 +266,11 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
                                 Toast.LENGTH_LONG).show();
                         if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
                     }
-                });
-        requestQueueDollar.add(dollarRequest);
+                }
+        );
+        System.out.println(request);
 
-        upUrlEuro = "https://api.cryptowat.ch/markets/kraken/btceur/price";
-        requestQueueEuro = Volley.newRequestQueue(this);
-
-        JsonRequest eurRequest = new JsonObjectRequest(
-                Request.Method.GET, upUrlEuro, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.i("API_RESPONSE", response.toString());
-                        upValEuro = UpProcessResult(response);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(CalculatorScreen.this,
-                                "Please try again!",
-                                Toast.LENGTH_LONG).show();
-                        if (error.getMessage() != null) Log.e("API_ERROR", error.getMessage());
-                    }
-                });
-        requestQueueEuro.add(eurRequest);
+        requestQueue.add(request);
     }
 
     /**
@@ -310,11 +322,6 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
 
     public void startNotification() {
         Intent intent = new Intent(this, NotificationScreen.class);
-        startActivity(intent);
-    }
-
-    public void startSettings() {
-        Intent intent = new Intent(this, SettingsScreen.class);
         startActivity(intent);
     }
 
