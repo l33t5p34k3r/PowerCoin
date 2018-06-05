@@ -37,7 +37,6 @@ public class NotificationDialog extends AppCompatDialogFragment {
                 .setPositiveButton("add", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        System.out.println(value);
                         if (Double.parseDouble(value.getText().toString()) == 0) {
                             Toast.makeText(getContext(),
                                     "please enter valid number!",

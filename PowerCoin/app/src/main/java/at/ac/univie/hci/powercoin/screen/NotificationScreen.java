@@ -3,6 +3,8 @@ package at.ac.univie.hci.powercoin.screen;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -13,6 +15,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -42,6 +45,7 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
      * NOTIFICATION RELATED
      */
     NotificationCompat.Builder notification;
+    boolean isbigger;
     /**
      * TEXT RELATED
      */
@@ -49,7 +53,10 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
     TextView entry1;
     private ActionBarDrawerToggle mToggle;
     private Runnable mTimer;
-    private String priceUrl = "https://api.cryptowat.ch/markets/kraken/btcusd/price";
+    private String currency = "USD";
+    private String currSymbol = " $ ";
+    private String priceUrl;
+
     private double price;
     private double alert = 0;
     private RequestQueue priceQueue;
@@ -62,6 +69,8 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getSupportActionBar().setTitle("Notifications");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification_screen);
         mDrawerLayout = findViewById(R.id.drawerLayout);
@@ -97,12 +106,14 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
 
         //NOTIFICATION (AND API)STUFF HERE
 
+        priceUrl = "https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=" + currency + "&e=Kraken";
+
         priceQueue = Volley.newRequestQueue(this);
 
         currPrice = findViewById(R.id.valueNotification);
 
         setPrice();
-        currPrice.setText(Double.toString(price));
+        currPrice.setText(Double.toString(price) + currSymbol);
         entry1 = findViewById(R.id.entry1);
 
         FloatingActionButton button = findViewById(R.id.addFloatingActionButton);
@@ -127,24 +138,18 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
     //has value from dialog and activates notification
     @Override
     public void applyText(String val) {
-        entry1.setText(val);
+        double value = Double.parseDouble(val);
+        if (value < price) {
+            entry1.setText("1 BTC < " + val + currSymbol);
+            alert = value;
 
-        alert = Double.parseDouble(val);
-
-        notification.setSmallIcon(R.mipmap.alarm);
-        notification.setContentTitle("PowerCoin");
-        notification.setTicker("");
-        notification.setWhen(System.currentTimeMillis());
-
-        Intent intent = new Intent(this, NotificationScreen.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        notification.setContentIntent(pendingIntent);
-
-        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
-        notification.setContentText("Bitcoin has reached value: " + alert + "!");
-        nm.notify(2323, notification.build());
-
+            isbigger = false;
+        }
+        if (value > price) {
+            entry1.setText("1 BTC > " + val + currSymbol);
+            alert = value;
+            isbigger = true;
+        }
     }
 
     public void setPrice() {
@@ -153,12 +158,11 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("GETPRICE_RESPONSE", response.toString());
+                        Log.i("NOTIFY_API_RESPONSE", response.toString());
                         try {
 
-                            JSONObject data = response.getJSONObject("result");
-                            price = data.getDouble("price");
-                            currPrice.setText(Double.toString(price));
+                            price = response.getDouble(currency);
+                            currPrice.setText(Double.toString(price) + currSymbol);
 
                         } catch (JSONException e) {
                             Toast.makeText(NotificationScreen.this,
@@ -178,7 +182,6 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
                     }
                 }
         );
-        System.out.println("HELLO : " + priceRequest.toString());
         priceQueue.add(priceRequest);
     }
 
@@ -193,17 +196,54 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
             public void run() {
 
                 setPrice();
-                /*
-                if(alert != 0) {
+
+                if (isbigger) {
+                    if (price > alert) {
+                        notification.setSmallIcon(R.mipmap.alarm);
+                        notification.setContentTitle("PowerCoin");
+                        notification.setTicker("");
+                        notification.setWhen(System.currentTimeMillis());
+
+                        Intent intent = new Intent(NotificationScreen.this, NotificationScreen.class);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(NotificationScreen.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        notification.setContentIntent(pendingIntent);
+
+                        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+                        notification.setContentText("Bitcoin has reached value: " + alert + "!");
+                        nm.notify(2323, notification.build());
+                    }
+
                     //send Notification and check
                 }
-                */
-                mHandler.postDelayed(this, 1000);
+                if (!isbigger) {
+                    if (price < alert) {
+                        notification.setSmallIcon(R.mipmap.alarm);
+                        notification.setContentTitle("PowerCoin");
+                        notification.setTicker("");
+                        notification.setWhen(System.currentTimeMillis());
+                        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        notification.setSound(alarmSound);
 
+                        Intent intent = new Intent(NotificationScreen.this, NotificationScreen.class);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(NotificationScreen.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        notification.setContentIntent(pendingIntent);
+
+                        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+                        notification.setContentText("Bitcoin has reached value: " + alert + "!");
+                        nm.notify(2323, notification.build());
+                    }
+                }
+                mHandler.postDelayed(this, 1000);
             }
         };
         mHandler.postDelayed(mTimer, 1000);
-        Log.d("GRAPH", "Successfully updated automatically!");
+        Log.d("NOTIFICATION", "Successfully updated automatically!");
+    }
+
+    public void sendNotification() {
+
     }
 
     @Override
@@ -212,14 +252,37 @@ public class NotificationScreen extends AppCompatActivity implements Notificatio
         super.onPause();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_notification, menu);
+        return true;
+    }
+
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        //enables Hamburger-Menu to be opened by pressing the button
-        if (mToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
+        switch (item.getItemId()) {
+            case R.id.action_dollar:
+                currency = "USD";
+                currSymbol = " $ ";
+                break;
+            case R.id.action_euro:
+                currency = "EUR";
+                currSymbol = " € ";
 
-        return super.onOptionsItemSelected(item);
+                break;
+            case R.id.action_yen:
+                currency = "JPY";
+                currSymbol = " ¥ ";
+                break;
+            case R.id.action_pound:
+                currency = "GBP";
+                currSymbol = " £ ";
+                break;
+        }
+        priceUrl = "https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=" + currency + "&e=Kraken";
+        setPrice();
+
+        return mToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
     public void startTicker() {

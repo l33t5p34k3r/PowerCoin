@@ -53,7 +53,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
     public static final String HISTORY_DATE_MESSAGE = "historyFileDate";
     public static final String HISTORY_BTC_MESSAGE = "historyFileBTC";
-    private static DecimalFormat dec = new DecimalFormat(".##");
+    private static DecimalFormat dec = new DecimalFormat("#.##");
     double bitcoinAmount;
     /**
      * HAMBURGER-MENU RELATED
@@ -134,6 +134,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        getSupportActionBar().setTitle("Portfolio");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_portfolio_screen);
         bitcoinView = findViewById(R.id.valNum);
@@ -158,9 +160,8 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         if (bitcoinAmount != 0) {
             bitcoinText = Double.toString(bitcoinAmount);
             bitcoinView.setText(bitcoinText + " BTC");
-        } else bitcoinView.setText(bitcoinText + " BTC");
-        // newConversion();
-
+        } else
+            bitcoinView.setText(bitcoinText + " BTC");
 
         Button buttonAdd = findViewById(R.id.buttonAdd);
         buttonAdd.setOnClickListener(this);
@@ -184,19 +185,19 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.buttonAdd:
-                Log.d("ADD_BUTTON", "Button was clicked!");
+                Log.i("ADD_BUTTON", "Button was clicked!");
                 addClicked();
                 break;
             case R.id.buttonRemove:
-                Log.d("REMOVE_BUTTON", "Button was clicked!");
+                Log.i("REMOVE_BUTTON", "Button was clicked!");
                 removeClicked();
                 break;
             case R.id.buttonHistory:
-                Log.d("HISTORY_BUTTON", "Button was clicked!");
+                Log.i("HISTORY_BUTTON", "Button was clicked!");
                 historyClicked();
                 break;
             case R.id.buttonDeleteHistory:
-                Log.d("DELETE_BUTTON", "Button was clicked!");
+                Log.i("DELETE_BUTTON", "Button was clicked!");
                 deleteHistory();
                 break;
             default:
@@ -225,10 +226,9 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
             return;
         }
 
-        //writeToFile(date + " (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount +  "\n", this);
         writeToFileDate(date + "\n", this);
         writeToFileBTC(" (+" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount + "\n", this);
-        Log.d("ADD_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
+
         String bitcoinText = Double.toString(bitcoinAmount);
 
         apiFunction();
@@ -264,7 +264,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
         writeToFileDate(date + "\n", this);
         writeToFileBTC(" (-" + bitcoinWrapper.getEditText().getText().toString() + ") BTC: " + bitcoinAmount + "\n", this);
-        Log.d("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
+        Log.i("REMOVE_BUTTON", "Bitcoin in wallet: " + bitcoinAmount);
         String bitcoinText = Double.toString(bitcoinAmount);
 
         apiFunction();
@@ -284,21 +284,6 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         Log.i("DELETE_BUTTON", "History was deleted!");
     }
 
-    /*
-
-    public void newConversion() {
-        double valueEuro;
-        double valueDollar;
-        valueEuro = bitcoinAmount * upValEuro;
-        valueDollar = bitcoinAmount * upValDollar;
-        String textEurDol;
-        Log.d("bitcoin is", Double.toString(upValEuro));
-
-        Log.d("conversion", Double.toString(valueEuro));
-        textEurDol = " = " + round(valueEuro, 2) + " €" + '\n' + round(valueDollar, 2) + " $";
-        euroDollarView.setText(textEurDol);
-    }
-*/
     //---------------
     //Other Functions
     //---------------
@@ -326,10 +311,9 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
         double d = 0;
         while (m.find()) {
             d = Double.parseDouble(m.group(1));
-            System.out.println(d);
         }
         bitcoinAmount = d;
-        Log.d("FILE", "CURRENT BITCOIN DEBUG: " + bitcoinAmount);
+        Log.i("FILE", "CURRENT BITCOIN DEBUG: " + bitcoinAmount);
     }
 
     /**
@@ -429,7 +413,7 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("UPDATE_API_RESPONSE", response.toString());
+                        Log.i("PORTFOLIO_API_RESPONSE", response.toString());
                         try {
                             value = response.getDouble(currency);
                             double total = value * bitcoinAmount;
@@ -437,7 +421,6 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
 
 
                             SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
-                            System.out.println(lastTime);
                             lastTimeView.setText("last update: " + sdf.format(new Date(lastTime)));
 
                             fiatView.setText(dec.format(round(total, 2)) + currSym);
@@ -460,8 +443,6 @@ public class PortfolioScreen extends AppCompatActivity implements View.OnClickLi
                     }
                 }
         );
-        System.out.println(request);
-
         requestQueue.add(request);
     }
 

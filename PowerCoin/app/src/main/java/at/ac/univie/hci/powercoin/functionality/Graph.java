@@ -50,7 +50,7 @@ public class Graph {
      * @return data points with values for graph
      */
     public LineGraphSeries<DataPoint> newDataPoints(double[] oldVal, long[] oldTime, final String currSymbol) {
-        Log.d("GRAPH.java", "New DataPointSeries being created");
+        Log.i("MSERIES", "New DataPointSeries being created");
 
         Long[] time = new Long[oldTime.length];
 
@@ -100,7 +100,7 @@ public class Graph {
             }
         });
 
-        Log.d("GRAPH.java", "DataPoints successfully added to mSeries");
+        Log.i("MSERIES", "DataPoints successfully added to mSeries");
         return mSeries;
     }
 
@@ -112,13 +112,13 @@ public class Graph {
      */
     public void update(double newVal, long newTime) {
 
-        Log.d("GRAPH.java", "updating mSeries");
+        Log.i("MSERIES", "updating mSeries");
 
         if (newTime > graphLastXValue) {
             graphLastXValue = newTime;
             mSeries.appendData(new DataPoint(graphLastXValue, newVal), true, Integer.MAX_VALUE);
         }
-        Log.d("GRAPH.java", "mSeries successfully updated");
+        Log.i("MSERIES", "mSeries successfully updated");
 
     }
 }

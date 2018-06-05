@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".screen.TickerScreen">
+
+
+    <item
+        android:id="@+id/option_group"
+        android:icon="@mipmap/currency"
+        android:title="Group"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/action_euro"
+                android:title="Euro"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_dollar"
+                android:title="Dollar"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_yen"
+                android:title="Yen"
+                app:showAsAction="never" />
+
+            <item
+                android:id="@+id/action_pound"
+                android:title="Pound"
+                app:showAsAction="never" />
+        </menu>
+    </item>
+</menu>

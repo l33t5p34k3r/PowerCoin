@@ -29,6 +29,7 @@ import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -82,6 +83,8 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getSupportActionBar().setTitle("Calculator");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calculator_screen);
 
@@ -118,25 +121,25 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
 
         switch (view.getId()) {
             case R.id.buttonEuro:
-                Log.d("EURO_BUTTON", "Button was clicked!");
+                Log.i("EURO_BUTTON", "Button was clicked!");
                 euroClicked();
                 inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
                         InputMethodManager.HIDE_NOT_ALWAYS);
                 break;
             case R.id.buttonDollar:
-                Log.d("DOLLAR_BUTTON", "Button was clicked! :D");
+                Log.i("DOLLAR_BUTTON", "Button was clicked! :D");
                 dollarClicked();
                 inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
                         InputMethodManager.HIDE_NOT_ALWAYS);
                 break;
             case R.id.buttonYen:
-                Log.d("DOLLAR_BUTTON", "Button was clicked! :D");
+                Log.i("DOLLAR_BUTTON", "Button was clicked! :D");
                 yenClicked();
                 inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
                         InputMethodManager.HIDE_NOT_ALWAYS);
                 break;
             case R.id.buttonPound:
-                Log.d("DOLLAR_BUTTON", "Button was clicked! :D");
+                Log.i("DOLLAR_BUTTON", "Button was clicked! :D");
                 poundClicked();
                 inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
                         InputMethodManager.HIDE_NOT_ALWAYS);
@@ -149,43 +152,37 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
     private void euroClicked() {
         currency = "EUR";
         apiFunction();
-        calculate();
     }
     private void dollarClicked() {
         currency = "USD";
         apiFunction();
-        calculate();
     }
 
     private void yenClicked() {
         currency = "JPY";
         apiFunction();
-        calculate();
     }
 
     private void poundClicked() {
         currency = "GBP";
         apiFunction();
-
-        System.out.println("Value in poundclicked is: " + exVal);
-        calculate();
     }
 
     private void calculate() {
+        DecimalFormat df = new DecimalFormat("#");
+        df.setMaximumFractionDigits(8);
         double bitcoinVal;
-        System.out.println("Value in calc is: " + exVal);
         if (isDouble(bitcoinWrapper.getEditText().getText().toString())) {
             bitcoinVal = Double.parseDouble(bitcoinWrapper.getEditText().getText().toString());
-            Log.d("VAL", Double.toString(exVal));
             bitcoinAmount = bitcoinVal * exVal;
             fiatWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
             bitcoinWrapper.getEditText().setText("");
 
         } else if (isDouble(fiatWrapper.getEditText().getText().toString())) {
             bitcoinVal = Double.parseDouble(fiatWrapper.getEditText().getText().toString());
-            Log.d("VAL", Double.toString(exVal));
             bitcoinAmount = bitcoinVal / exVal;
-            bitcoinWrapper.getEditText().setText(Double.toString(round(bitcoinAmount, 2)));
+            System.out.println(bitcoinAmount);
+            bitcoinWrapper.getEditText().setText(df.format((round(bitcoinAmount, 8))));
             fiatWrapper.getEditText().setText("");
         }
     }
@@ -241,9 +238,12 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.i("UPDATE_API_RESPONSE", response.toString());
+                        Log.i("CALC_API_RESPONSE", response.toString());
                         try {
                             exVal = response.getDouble(currency);
+                            calculate();
+
+
                             long lastTime = System.currentTimeMillis();
 
 
@@ -268,31 +268,8 @@ public class CalculatorScreen extends AppCompatActivity implements View.OnClickL
                     }
                 }
         );
-        System.out.println(request);
 
         requestQueue.add(request);
-    }
-
-    /**
-     * This function gets the API Response and gives back the newest BTC price
-     *
-     * @param apiResponse
-     * @return upVal - the newest bitcoin value
-     */
-    private double UpProcessResult(JSONObject apiResponse) {
-        try {
-
-            JSONObject data = apiResponse.getJSONObject("result");
-            double upVal = data.getDouble("price");
-            return upVal;
-
-        } catch (JSONException e) {
-            Toast.makeText(CalculatorScreen.this,
-                    "Could not parse API response!",
-                    Toast.LENGTH_LONG).show();
-            Log.e("PARSER_ERROR", e.getMessage());
-        }
-        return 0;
     }
 
     /**

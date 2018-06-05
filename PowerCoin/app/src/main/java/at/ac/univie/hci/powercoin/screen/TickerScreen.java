@@ -52,6 +52,7 @@ import at.ac.univie.hci.powercoin.functionality.Graph;
 
 public class TickerScreen extends AppCompatActivity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
+
     private static DecimalFormat dec = new DecimalFormat(".##");
     /**
      * GRAPH RELATED
@@ -125,6 +126,9 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        getSupportActionBar().setTitle("Ticker");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ticker_screen);
 
@@ -237,11 +241,11 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             case R.id.graphManualUpdate:
 
-                Log.d("GRAPH", "Update Button was clicked!");
+                Log.i("GRAPH", "Update Button was clicked!");
 
                 updateGraph();
 
-                Log.d("GRAPH", "Successfully updated!");
+                Log.i("GRAPH", "Successfully updated!");
                 break;
             default:
                 throw new RuntimeException("Unknown button ID");
@@ -257,7 +261,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
     private void createGraph() {
 
-        Log.d("createGraph", "creating graph with time: " + Double.toString(time));
+        Log.i("GRAPH", "creating graph with time: " + Double.toString(time));
 
         GraphView graphView = findViewById(R.id.graph);
 
@@ -291,7 +295,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                     if (time == 168)
                         return week.format(value);
                     if (time == 31) {
-                        Log.d("formatLabel", "the current value is: " + Double.toString(value));
                         return month.format(value);
 
                     } else
@@ -474,7 +477,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             }
         };
         mHandler.postDelayed(mTimer, 15000);
-        Log.d("GRAPH", "Successfully updated automatically!");
+        Log.i("GRAPH", "Successfully updated automatically!");
     }
 
     /**
@@ -491,12 +494,12 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
      */
     @Override
     public void onRefresh() {
-        Log.d("GRAPH", "Swipe was used!");
+        Log.i("GRAPH", "Swipe was used!");
 
         updateGraph();
 
         swipeUpdate.setRefreshing(false);
-        Log.d("GRAPH", "Successfully updated with swipe!");
+        Log.i("GRAPH", "Successfully updated with swipe!");
     }
 
     //---------------
@@ -520,7 +523,6 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
-
                     case (R.id.nav_ticker):
                         startTicker();
                         break;
@@ -545,7 +547,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_currency, menu);
+        getMenuInflater().inflate(R.menu.menu_ticker, menu);
         return true;
     }
 
@@ -569,7 +571,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return true;
+                break;
             case R.id.action_euro:
 
                 try {
@@ -587,7 +589,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return true;
+                break;
             case R.id.action_yen:
 
                 try {
@@ -605,7 +607,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return true;
+                break;
             case R.id.action_pound:
 
                 try {
@@ -623,7 +625,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return true;
+                break;
             case R.id.action_timeperiod_day:
                 try {
                     File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "timeperiod.txt");
@@ -637,7 +639,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return true;
+                break;
             case R.id.action_timeperiod_week:
                 try {
                     File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "timeperiod.txt");
@@ -651,7 +653,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return true;
+                break;
             case R.id.action_timeperiod_month:
                 try {
                     File file = new File(TickerScreen.this.getFilesDir().getAbsolutePath(), "timeperiod.txt");
@@ -665,7 +667,7 @@ public class TickerScreen extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                return true;
+                break;
 
         }
         return mToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
