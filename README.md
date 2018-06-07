@@ -7,21 +7,23 @@
 
 ### IMPLEMENTATION
 
-FRAMEWORK:	
-Android
+#### FRAMEWORK:	
+* Android
 
-API-VERSION:	
-Android Lollipop 5.1 / API-LEVEL: 22
+#### API-VERSION:	
+* Android Lollipop 5.1 
 
-TESTED DEVICES:
-Nexus 5X (Emulator)
-Sony Xperia XZ1
+#### API-LEVEL: 
+* 22
 
-EXTERNAL LIBRARIES AND FRAMEWORKS:
-com.android.volley
-com.jjoe64.graphview
-org.json
+#### TESTED DEVICES:
+* Nexus 5X (Emulator)
+* Sony Xperia XZ1
 
-LENGTH OF DEVELOPMENT:
-15 Hours
-(original prototype: 70 Hours)
+#### EXTERNAL LIBRARIES AND FRAMEWORKS:
+* com.android.volley
+* com.jjoe64.graphview
+* org.json
+
+#### LENGTH OF DEVELOPMENT:
+* 15 Hours (original prototype: 70 Hours)
